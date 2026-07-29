@@ -1,0 +1,17 @@
+{
+  "name": "ai-sustainability-tracker",
+  "version": "1.0.0",
+  "description": "Tracks personal AI usage (prompts, tokens, CO2, energy) by importing official ChatGPT, Claude, and Gemini data export zip files, using the EcoLogits API for environmental impact estimates.",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "adm-zip": "^0.5.16",
+    "express": "^4.21.2",
+    "multer": "^2.0.1"
+  }
+}

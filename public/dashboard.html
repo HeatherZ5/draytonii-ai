@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI Sustainability Tracker - Dashboard</title>
+<link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="dashboard.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="leaf-logo">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M20 4C10 4 4 10 4 18v2h2c8 0 14-6 14-16Z" fill="#34a869"/>
+        <path d="M6 20c4-6 8-9 14-14" stroke="#145c3a" stroke-width="1.4" stroke-linecap="round"/>
+      </svg>
+      AI Sustainability Tracker
+    </div>
+    <div class="period-toggle" id="periodToggle" role="tablist" aria-label="Time period">
+      <button data-period="day" class="active" role="tab" aria-selected="true">Day</button>
+      <button data-period="week" role="tab" aria-selected="false">Week</button>
+      <button data-period="month" role="tab" aria-selected="false">Month</button>
+      <button data-period="year" role="tab" aria-selected="false">Year</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="card upload-card">
+      <div class="upload-copy">
+        <strong>Import your AI usage</strong>
+        <p class="muted">Upload the official data export zip from ChatGPT, Claude, or Gemini (Google Takeout &rarr; Gemini Apps) to add it to your dashboard.</p>
+      </div>
+      <div class="upload-controls">
+        <label class="file-label btn btn-outline">
+          <span id="fileLabelText">Choose .zip file</span>
+          <input type="file" id="fileInput" accept=".zip" hidden />
+        </label>
+        <button id="uploadBtn" class="btn btn-primary" disabled>Upload Export</button>
+      </div>
+      <div id="uploadStatus" class="upload-status" aria-live="polite"></div>
+    </section>
+
+    <p class="range-label muted" id="rangeLabel"></p>
+
+    <section class="stats-row">
+      <div class="card stat-card">
+        <div class="stat-number" id="statPrompts">&mdash;</div>
+        <div class="stat-label">Prompts Written</div>
+      </div>
+      <div class="card stat-card">
+        <div class="stat-number" id="statTokensIn">&mdash;</div>
+        <div class="stat-label">Tokens Inputted</div>
+      </div>
+      <div class="card stat-card">
+        <div class="stat-number" id="statTokensOut">&mdash;</div>
+        <div class="stat-label">Tokens Outputted</div>
+      </div>
+    </section>
+
+    <section class="card panel">
+      <div class="panel-header">
+        <h2>Total CO<sub>2</sub> Emissions</h2>
+        <span class="panel-unit muted">kg CO<sub>2</sub>eq</span>
+      </div>
+      <div class="panel-body split">
+        <div class="pie-wrap">
+          <div class="pie-chart" id="co2Pie"></div>
+          <div class="pie-center" id="co2Center"></div>
+        </div>
+        <ul class="legend" id="co2Legend"></ul>
+      </div>
+    </section>
+
+    <section class="card panel">
+      <div class="panel-header">
+        <h2>Estimated Energy</h2>
+        <div class="tab-toggle" id="energyTabs">
+          <button data-tab="numbers" class="active">Numbers</button>
+          <button data-tab="chart">Chart</button>
+        </div>
+      </div>
+
+      <div class="panel-body" id="energyNumbers">
+        <div class="energy-total">
+          <div class="stat-number" id="energyTotal">&mdash;</div>
+          <div class="stat-label">Total kWh</div>
+        </div>
+        <ul class="energy-breakdown" id="energyBreakdownList"></ul>
+      </div>
+
+      <div class="panel-body split hidden" id="energyChart">
+        <div class="pie-wrap">
+          <div class="pie-chart" id="energyPie"></div>
+          <div class="pie-center" id="energyCenter"></div>
+        </div>
+        <ul class="legend" id="energyLegend"></ul>
+      </div>
+    </section>
+
+    <footer class="data-note muted" id="dataNote"></footer>
+  </main>
+
+  <script src="dashboard.js"></script>
+</body>
+</html>

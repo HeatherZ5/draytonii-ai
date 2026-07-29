@@ -1,0 +1,96 @@
+:root {
+  --color-bg: #f3f9f5;
+  --color-surface: #ffffff;
+  --color-primary: #1b7a4d;
+  --color-primary-dark: #145c3a;
+  --color-primary-light: #34a869;
+  --color-text: #14251c;
+  --color-text-muted: #63756a;
+  --color-border: #e0ece4;
+  --color-chatgpt: #10a37f;
+  --color-claude: #d97757;
+  --color-gemini: #4285f4;
+  --radius-lg: 18px;
+  --radius-md: 12px;
+  --shadow-card: 0 2px 10px rgba(20, 60, 40, 0.07), 0 1px 2px rgba(20, 60, 40, 0.04);
+  --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  background: var(--color-bg);
+  color: var(--color-text);
+  background-image:
+    radial-gradient(circle at 8% 10%, rgba(52, 168, 105, 0.08), transparent 40%),
+    radial-gradient(circle at 92% 85%, rgba(66, 133, 244, 0.06), transparent 40%);
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
+a {
+  color: inherit;
+}
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+
+.btn {
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 10px 18px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.08s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: var(--color-primary-dark);
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--color-primary);
+  border: 1.5px solid var(--color-primary-light);
+}
+
+.btn-outline:hover {
+  background: rgba(27, 122, 77, 0.08);
+}
+
+.muted {
+  color: var(--color-text-muted);
+}
+
+.leaf-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 800;
+  font-size: 1.15rem;
+  color: var(--color-primary-dark);
+}
+
+.leaf-logo svg {
+  width: 22px;
+  height: 22px;
+}
