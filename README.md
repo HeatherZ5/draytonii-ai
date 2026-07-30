@@ -1,4 +1,4 @@
-# AI Sustainability Tracker
+# Project Draytonii
 
 A personal dashboard that estimates the prompts, tokens, energy, and CO2
 footprint of your ChatGPT, Claude, and Gemini usage, built from the

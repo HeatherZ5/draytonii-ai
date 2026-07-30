@@ -53,7 +53,7 @@ app.post('/api/reset', async (req, res) => {
 // avoids Vercel's ~4.5MB serverless request body limit, which raw export
 // zips can easily exceed.
 app.post('/api/ingest', async (req, res) => {
-  const { platform, turns, conversationCount, modelAssumed, responseTextUnavailable } = req.body || {};
+  const { platform, turns, conversationCount, modelAssumed, responseTextUnavailable, resetKeys } = req.body || {};
 
   if (!['chatgpt', 'claude', 'gemini'].includes(platform)) {
     return res.status(400).json({ error: 'Missing or invalid "platform".' });
@@ -65,7 +65,7 @@ app.post('/api/ingest', async (req, res) => {
   }
 
   try {
-    const ingestSummary = await ingestTurns(turns);
+    const ingestSummary = await ingestTurns(turns, resetKeys);
     res.json({
       platform,
       conversationsFound: conversationCount,
@@ -165,5 +165,5 @@ app.post('/api/upload', upload.single('exportZip'), async (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`AI Sustainability Tracker running at http://localhost:${PORT}`);
+  console.log(`Project Draytonii running at http://localhost:${PORT}`);
 });

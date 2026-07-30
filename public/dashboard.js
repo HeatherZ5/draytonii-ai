@@ -435,28 +435,60 @@
           throw new Error(`Recognized this as a ${detection.platform} export, but found no readable conversation turns inside it.`);
         }
 
-        status.textContent = 'Uploading the analyzed results…';
+        // Sent in bounded-size batches, not one giant request - Vercel's
+        // serverless functions hard-cap the request body around 4.5MB at
+        // the platform edge (well below express's own 15mb json limit),
+        // and a large multi-year export's turns array can exceed that,
+        // which shows up in the browser as a bare "Failed to fetch" with
+        // no server-side error at all. The first batch carries the full
+        // set of (day, assistant) pairs touched by this whole upload so
+        // the server resets them once; later batches accumulate onto
+        // those already-reset buckets instead of re-clobbering them.
+        const CHUNK_SIZE = 300;
+        const dayKeyFor = (timestamp) => {
+          const d = new Date(timestamp);
+          return Number.isNaN(d.getTime())
+            ? new Date().toISOString().slice(0, 10)
+            : d.toISOString().slice(0, 10);
+        };
+        const resetKeys = Array.from(
+          new Set(parsed.turns.map((t) => `${dayKeyFor(t.timestamp)}::${t.assistant}`))
+        );
 
-        const res = await fetch('/api/ingest', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            platform: detection.platform,
-            turns: parsed.turns,
-            conversationCount: parsed.conversationCount,
-            modelAssumed: parsed.modelAssumed,
-            responseTextUnavailable: parsed.responseTextUnavailable,
-          }),
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Upload failed.');
+        let turnsIngestedTotal = 0;
+        const totalBatches = Math.ceil(parsed.turns.length / CHUNK_SIZE);
+
+        for (let i = 0; i < parsed.turns.length; i += CHUNK_SIZE) {
+          const batch = parsed.turns.slice(i, i + CHUNK_SIZE);
+          const batchNumber = i / CHUNK_SIZE + 1;
+          status.textContent = totalBatches > 1
+            ? `Uploading batch ${batchNumber} of ${totalBatches}…`
+            : 'Uploading the analyzed results…';
+
+          const res = await fetch('/api/ingest', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              platform: detection.platform,
+              turns: batch,
+              conversationCount: parsed.conversationCount,
+              modelAssumed: parsed.modelAssumed,
+              responseTextUnavailable: parsed.responseTextUnavailable,
+              resetKeys: batchNumber === 1 ? resetKeys : [],
+            }),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'Upload failed.');
+
+          turnsIngestedTotal += data.turnsIngested;
+        }
 
         status.className = 'upload-status ok';
         status.textContent =
-          `Imported ${data.turnsIngested} exchange(s) from ${data.conversationsFound} ` +
-          `${data.platform} conversation(s).` +
-          (data.modelAssumed ? ' (Model name was assumed — the export doesn\'t include it.)' : '') +
-          (data.responseTextUnavailable ? ' (Gemini response lengths were estimated — Takeout doesn\'t export reply text.)' : '');
+          `Imported ${turnsIngestedTotal} exchange(s) from ${parsed.conversationCount} ` +
+          `${detection.platform} conversation(s).` +
+          (parsed.modelAssumed ? ' (Model name was assumed — the export doesn\'t include it.)' : '') +
+          (parsed.responseTextUnavailable ? ' (Gemini response lengths were estimated — Takeout doesn\'t export reply text.)' : '');
 
         await loadStats(currentPeriod);
         await loadCalendarData();

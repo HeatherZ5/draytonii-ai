@@ -41,7 +41,23 @@ async function mapWithConcurrency(items, limit, fn) {
   return results;
 }
 
-async function ingestTurns(turns) {
+/**
+ * resetKeys controls which (day, assistant) buckets get zeroed before
+ * accumulating this batch of turns:
+ *  - undefined (default): auto-detect from the turns themselves, exactly
+ *    like a single-request upload - each day+assistant pair is reset the
+ *    first time it's seen in this call. Used by the legacy /api/upload
+ *    path and any non-chunked /api/ingest call.
+ *  - an explicit array of "day::assistant" strings: only those keys get
+ *    reset (once), everything else in this batch accumulates onto
+ *    whatever is already stored. This lets a large export be split into
+ *    several sequential requests (to stay under Vercel's ~4.5MB
+ *    serverless request body limit) without later chunks clobbering
+ *    earlier chunks' contributions to the same day - the caller computes
+ *    the full reset set once across the whole upload and only sends it
+ *    with the first chunk; later chunks pass an empty array.
+ */
+async function ingestTurns(turns, resetKeys) {
   const store = await loadStore();
 
   const impacts = await mapWithConcurrency(turns, CONCURRENCY, (turn) =>
@@ -52,19 +68,33 @@ async function ingestTurns(turns) {
     })
   );
 
+  const autoDetectResets = resetKeys === undefined;
+  const touched = new Set();
+  if (!autoDetectResets) {
+    for (const key of resetKeys) {
+      const [day, assistant] = key.split('::');
+      if (!day || !assistant) continue;
+      if (!store.days[day]) store.days[day] = {};
+      store.days[day][assistant] = emptyAssistantBucket();
+    }
+  }
+
   let ecologitsCount = 0;
   let fallbackCount = 0;
   let minDate = null;
   let maxDate = null;
-  const touched = new Set();
 
   turns.forEach((turn, i) => {
     const day = dateKey(turn.timestamp);
     if (!store.days[day]) store.days[day] = {};
 
-    const touchKey = `${day}::${turn.assistant}`;
-    if (!touched.has(touchKey)) {
-      touched.add(touchKey);
+    if (autoDetectResets) {
+      const touchKey = `${day}::${turn.assistant}`;
+      if (!touched.has(touchKey)) {
+        touched.add(touchKey);
+        store.days[day][turn.assistant] = emptyAssistantBucket();
+      }
+    } else if (!store.days[day][turn.assistant]) {
       store.days[day][turn.assistant] = emptyAssistantBucket();
     }
 
