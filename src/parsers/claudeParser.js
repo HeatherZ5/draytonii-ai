@@ -38,12 +38,25 @@ function parseClaudeExport(conversationsJsonText) {
     const model = conversation.model || DEFAULT_CLAUDE_MODEL;
 
     let pendingUser = null;
+    const flushUnanswered = () => {
+      if (!pendingUser) return;
+      turns.push({
+        assistant: 'claude',
+        model,
+        timestamp: pendingUser.createdAt || new Date().toISOString(),
+        promptTokens: estimateTokens(pendingUser.text),
+        completionTokens: 0,
+      });
+      pendingUser = null;
+    };
+
     for (const msg of messages) {
       const text = extractText(msg);
       if (!text) continue;
       const sender = msg.sender;
 
       if (sender === 'human') {
+        flushUnanswered();
         pendingUser = { text, createdAt: msg.created_at };
       } else if (sender === 'assistant' && pendingUser) {
         turns.push({
@@ -56,6 +69,7 @@ function parseClaudeExport(conversationsJsonText) {
         pendingUser = null;
       }
     }
+    flushUnanswered();
   }
 
   return { turns, conversationCount, modelAssumed: true };
