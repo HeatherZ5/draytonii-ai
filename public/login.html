@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI Sustainability Tracker - Log In</title>
+<link rel="stylesheet" href="style.css" />
+<style>
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .login-wrap {
+    width: 100%;
+    max-width: 380px;
+    padding: 24px;
+  }
+
+  .login-card {
+    padding: 40px 32px 32px;
+    text-align: center;
+  }
+
+  .login-card p.tagline {
+    margin: 6px 0 28px;
+    font-size: 0.92rem;
+  }
+
+  .field {
+    text-align: left;
+    margin-bottom: 16px;
+  }
+
+  .field label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    margin-bottom: 6px;
+  }
+
+  .field input {
+    width: 100%;
+    padding: 11px 14px;
+    border-radius: var(--radius-md);
+    border: 1.5px solid var(--color-border);
+    font-size: 0.95rem;
+    font-family: inherit;
+    background: #fbfdfc;
+  }
+
+  .field input:focus {
+    outline: none;
+    border-color: var(--color-primary-light);
+  }
+
+  .login-card .btn-primary {
+    width: 100%;
+    padding: 12px;
+    margin-top: 8px;
+    font-size: 1rem;
+  }
+
+  .sim-note {
+    margin-top: 18px;
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    line-height: 1.4;
+  }
+
+  .back-link {
+    display: block;
+    margin-top: 16px;
+    font-size: 0.82rem;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+  <div class="login-wrap">
+    <div class="login-card card">
+      <div class="leaf-logo" style="justify-content:center;">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20 4C10 4 4 10 4 18v2h2c8 0 14-6 14-16Z" fill="#34a869"/>
+          <path d="M6 20c4-6 8-9 14-14" stroke="#145c3a" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+        AI Sustainability Tracker
+      </div>
+      <p class="tagline muted">See the real footprint of your AI use.</p>
+
+      <form id="loginForm">
+        <div class="field">
+          <label for="email">Email</label>
+          <input id="email" type="email" placeholder="you@example.com" autocomplete="email" />
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input id="password" type="password" placeholder="••••••••" autocomplete="current-password" />
+        </div>
+        <button type="submit" class="btn btn-primary">Log In / Sign Up</button>
+      </form>
+
+      <p class="sim-note">This login is simulated for demo purposes — any input (or none) will take you to the dashboard.</p>
+      <a class="back-link" href="index.html">&larr; Back to About</a>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      window.location.href = 'dashboard.html';
+    });
+  </script>
+</body>
+</html>

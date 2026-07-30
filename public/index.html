@@ -3,107 +3,95 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>AI Sustainability Tracker - Log In</title>
+<title>About - AI Sustainability Tracker</title>
 <link rel="stylesheet" href="style.css" />
-<style>
-  body {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .login-wrap {
-    width: 100%;
-    max-width: 380px;
-    padding: 24px;
-  }
-
-  .login-card {
-    padding: 40px 32px 32px;
-    text-align: center;
-  }
-
-  .login-card p.tagline {
-    margin: 6px 0 28px;
-    font-size: 0.92rem;
-  }
-
-  .field {
-    text-align: left;
-    margin-bottom: 16px;
-  }
-
-  .field label {
-    display: block;
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: var(--color-text-muted);
-    margin-bottom: 6px;
-  }
-
-  .field input {
-    width: 100%;
-    padding: 11px 14px;
-    border-radius: var(--radius-md);
-    border: 1.5px solid var(--color-border);
-    font-size: 0.95rem;
-    font-family: inherit;
-    background: #fbfdfc;
-  }
-
-  .field input:focus {
-    outline: none;
-    border-color: var(--color-primary-light);
-  }
-
-  .login-card .btn-primary {
-    width: 100%;
-    padding: 12px;
-    margin-top: 8px;
-    font-size: 1rem;
-  }
-
-  .sim-note {
-    margin-top: 18px;
-    font-size: 0.75rem;
-    color: var(--color-text-muted);
-    line-height: 1.4;
-  }
-</style>
 </head>
 <body>
-  <div class="login-wrap">
-    <div class="login-card card">
-      <div class="leaf-logo" style="justify-content:center;">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="leaf-logo" href="index.html">
         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M20 4C10 4 4 10 4 18v2h2c8 0 14-6 14-16Z" fill="#34a869"/>
           <path d="M6 20c4-6 8-9 14-14" stroke="#145c3a" stroke-width="1.4" stroke-linecap="round"/>
         </svg>
         AI Sustainability Tracker
-      </div>
-      <p class="tagline muted">See the real footprint of your AI use.</p>
-
-      <form id="loginForm">
-        <div class="field">
-          <label for="email">Email</label>
-          <input id="email" type="email" placeholder="you@example.com" autocomplete="email" />
-        </div>
-        <div class="field">
-          <label for="password">Password</label>
-          <input id="password" type="password" placeholder="••••••••" autocomplete="current-password" />
-        </div>
-        <button type="submit" class="btn btn-primary">Log In</button>
-      </form>
-
-      <p class="sim-note">This login is simulated for demo purposes — any input (or none) will take you to the dashboard.</p>
+      </a>
+      <nav class="site-nav" aria-label="Main">
+        <a href="index.html" class="active">About</a>
+        <a href="your-data.html">Your Data</a>
+        <a href="sources.html">Sources</a>
+        <a href="login.html" class="nav-cta">Login / Sign Up</a>
+      </nav>
     </div>
-  </div>
+  </header>
 
-  <script>
-    document.getElementById('loginForm').addEventListener('submit', function (e) {
-      e.preventDefault();
-      window.location.href = 'dashboard.html';
-    });
-  </script>
+  <main class="page-main">
+    <h1>About AI Sustainability Tracker</h1>
+    <p class="lede">A personal dashboard that turns your ChatGPT, Claude, and Gemini usage into a clear picture of the energy, carbon, water, and mineral cost behind it - built from the official data export each platform already lets you download.</p>
+
+    <figure class="photo-placeholder">
+      <div class="photo-placeholder-box" aria-hidden="true">🖼️</div>
+      <figcaption>Placeholder - add a wide banner photo here (e.g. a data center, server racks, or renewable energy infrastructure). Suggested alt text: "Rows of servers in a data center."</figcaption>
+    </figure>
+
+    <section class="page-section">
+      <h2>Our Mission</h2>
+      <p>Our mission is to give everyday users of ChatGPT, Claude, and Gemini a clear, personal view of the environmental cost behind every prompt they send - turning an invisible, abstract impact into concrete numbers people can see, understand, and act on.</p>
+    </section>
+
+    <section class="page-section">
+      <h2>Our Vision</h2>
+      <p>We envision a future where environmental transparency is a standard feature of every AI product, not an afterthought - where checking your AI footprint is as ordinary as checking your phone's battery usage, and where that visibility nudges the industry toward genuinely more efficient models and infrastructure.</p>
+    </section>
+
+    <section class="page-section">
+      <h2>Our Values</h2>
+      <ul class="values-grid">
+        <li>
+          <strong>Transparency</strong>
+          We show our work. Every estimate on this dashboard traces back to a cited, published source, not a black box - see the Sources page for the full list.
+        </li>
+        <li>
+          <strong>Accuracy Over Alarmism</strong>
+          We favor real data and clearly labeled estimates over exaggerated claims, and we openly flag where the underlying science is still uncertain or incomplete.
+        </li>
+        <li>
+          <strong>Accessibility</strong>
+          Understanding your AI footprint shouldn't require a research background. The numbers here are presented simply, with plain explanations of what each one means.
+        </li>
+        <li>
+          <strong>Privacy by Design</strong>
+          Your conversation data is parsed inside your own browser and never uploaded. Only small, aggregated numbers ever leave your device - see the Your Data page for details.
+        </li>
+      </ul>
+    </section>
+
+    <section class="page-section">
+      <h2>Why the Sustainability of AI Matters</h2>
+      <p>AI's environmental cost is real, measurable, and growing - even as individual models become more efficient over time.</p>
+      <ul>
+        <li><strong>Training is carbon-intensive.</strong> Training a single frontier model can emit hundreds of tons of CO<sub>2</sub>eq; GPT-3's training run alone is estimated at roughly 552 tCO<sub>2</sub>eq (Patterson et al., 2021).</li>
+        <li><strong>Efficiency gains don't mean zero impact.</strong> Google's own 2025 production measurements found real, non-zero energy, water, and carbon costs per Gemini prompt - even after the company reported a 44x reduction in per-prompt carbon over the prior twelve months (Google, 2025). The industry's own numbers confirm this was, and still is, a real cost worth tracking.</li>
+        <li><strong>Water use extends beyond the data center.</strong> Early estimates put inference-time water use at roughly 10-25 mL per prompt for GPT-3-era models (Li et al., 2023), and the chips themselves are costly to produce: a single advanced semiconductor fab can use 20-38 million liters of water per day (World Economic Forum; IDTechEx).</li>
+        <li><strong>The hardware supply chain has its own footprint.</strong> The chips that power these models depend on a small number of geographically concentrated critical minerals - gallium, germanium, palladium, and silicon among them - raising supply-chain and extraction concerns that go beyond carbon accounting alone (CSIS, 2025).</li>
+        <li><strong>Small costs, multiplied billions of times, add up.</strong> Any single prompt's footprint is tiny. But billions of prompts are sent across ChatGPT, Claude, and Gemini every day, and that scale is exactly why visibility at the individual level matters - you can't reduce what you can't see.</li>
+      </ul>
+      <p class="muted" style="font-size:0.85rem;">Full citations for every figure above are on the <a href="sources.html">Sources</a> page.</p>
+    </section>
+
+    <section class="page-section">
+      <h2>Our Name: Rana Draytonii</h2>
+
+      <figure class="photo-placeholder">
+        <div class="photo-placeholder-box" aria-hidden="true">🐸</div>
+        <figcaption>Placeholder - add a photo of the California red-legged frog (Rana draytonii) here. Suggested alt text: "A California red-legged frog (Rana draytonii) resting on damp soil."</figcaption>
+      </figure>
+
+      <p>This project takes its name from <em>Rana draytonii</em>, the California red-legged frog - a species listed as threatened under the U.S. Endangered Species Act and long recognized as a symbol of conservation across California (U.S. Fish &amp; Wildlife Service; National Wildlife Federation).</p>
+      <p>Historically found across most of the state, the California red-legged frog's decline has been driven almost entirely by human activity: habitat loss from urban development and agriculture, water diversion and wetland drainage, pollution, and the introduction of non-native predators like the American bullfrog, which outcompetes and preys on the native frog (NatureServe; National Wildlife Federation). This frog didn't disappear because of anything it did - it disappeared because of choices made by the humans sharing its habitat, echoing the way today's technology choices, including how we build and use AI, quietly reshape the environment around us.</p>
+      <p>There is reason for hope. Recent conservation efforts, including large-scale reintroduction programs releasing captive-raised Rana draytonii back into protected habitats, have helped stabilize some populations (U.S. Fish &amp; Wildlife Service). We named this project after Rana draytonii as a reminder that environmental harm driven by human activity - whether it's habitat destruction or the resource cost of a data center - is also within human power to measure, address, and reverse.</p>
+      <p class="muted" style="font-size:0.85rem;">Sources for this section are listed on the <a href="sources.html">Sources</a> page.</p>
+    </section>
+  </main>
 </body>
 </html>

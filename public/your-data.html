@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Your Data - AI Sustainability Tracker</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="leaf-logo" href="index.html">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20 4C10 4 4 10 4 18v2h2c8 0 14-6 14-16Z" fill="#34a869"/>
+          <path d="M6 20c4-6 8-9 14-14" stroke="#145c3a" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+        AI Sustainability Tracker
+      </a>
+      <nav class="site-nav" aria-label="Main">
+        <a href="index.html">About</a>
+        <a href="your-data.html" class="active">Your Data</a>
+        <a href="sources.html">Sources</a>
+        <a href="login.html" class="nav-cta">Login / Sign Up</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-main">
+    <h1>Your Data</h1>
+    <p class="lede">This page explains exactly what's inside each platform's official export file, how to request that export yourself, and precisely how this app handles your data once you upload it.</p>
+
+    <section class="page-section">
+      <h2>ChatGPT</h2>
+
+      <h3>What's in the export</h3>
+      <ul>
+        <li><strong>conversations.json</strong> - a tree ("mapping") of every message node in every conversation, including your prompts and ChatGPT's replies, per-message timestamps, and, when available, which model answered (e.g. gpt-4o, gpt-4o-mini).</li>
+        <li><strong>chat.html</strong> - a browsable HTML copy of your conversations. Not used by this app.</li>
+        <li><strong>user.json</strong>, <strong>message_feedback.json</strong>, and other account metadata files. Not used by this app.</li>
+      </ul>
+
+      <h3>How to get it</h3>
+      <ol class="export-steps">
+        <li>Go to <strong>chatgpt.com</strong> and log in.</li>
+        <li>Click your profile icon &rarr; <strong>Settings</strong> &rarr; <strong>Data Controls</strong>.</li>
+        <li>Under "Export data," click <strong>Export</strong> and confirm.</li>
+        <li>OpenAI emails you a download link, usually within a few minutes to a few hours. Download the zip from that email.</li>
+      </ol>
+    </section>
+
+    <section class="page-section">
+      <h2>Claude</h2>
+
+      <h3>What's in the export</h3>
+      <ul>
+        <li><strong>conversations.json</strong> - a flat, already-ordered list of every message in every conversation ("chat_messages"), each tagged <em>human</em> or <em>assistant</em>, with timestamps. Claude's export does not include which model answered each message.</li>
+        <li><strong>users.json</strong> and other account metadata. Not used by this app.</li>
+      </ul>
+
+      <h3>How to get it</h3>
+      <ol class="export-steps">
+        <li>Go to <strong>claude.ai</strong> and log in.</li>
+        <li>Click your profile &rarr; <strong>Settings</strong> &rarr; <strong>Account</strong>.</li>
+        <li>Find <strong>Export data</strong> and request it.</li>
+        <li>Anthropic emails you a download link. Download the zip from that email.</li>
+      </ol>
+    </section>
+
+    <section class="page-section">
+      <h2>Gemini</h2>
+
+      <h3>What's in the export</h3>
+      <p>Google Takeout doesn't export full Gemini conversations - only an activity log.</p>
+      <ul>
+        <li><strong>MyActivity.json</strong> - one entry per prompt you sent, with the prompt's title/text and a timestamp. It does <strong>not</strong> include Gemini's replies or which model answered - this app estimates those separately and clearly flags them as estimated.</li>
+      </ul>
+
+      <h3>How to get it</h3>
+      <ol class="export-steps">
+        <li>Go to <strong>takeout.google.com</strong> and log in.</li>
+        <li>Click <strong>Deselect all</strong>, then scroll to find and check only <strong>My Activity</strong>.</li>
+        <li>Click into "All activity data included" and deselect everything except <strong>Gemini Apps</strong>.</li>
+        <li>Set the export format to <strong>JSON</strong> (not HTML), then start the export.</li>
+        <li>Google emails you a download link. Download the zip from that email.</li>
+      </ol>
+    </section>
+
+    <section class="page-section">
+      <h2>How Your Data Is Used</h2>
+      <ul>
+        <li><strong>Everything happens in your browser.</strong> When you upload an export zip, it's unzipped and parsed entirely client-side in JavaScript - the raw file itself never leaves your device.</li>
+        <li><strong>Only small, derived numbers are sent to our server:</strong> which platform, a timestamp, and token-count estimates for each message. The actual text of your prompts and replies is discarded immediately after those counts are computed, and is never transmitted or stored anywhere.</li>
+        <li><strong>Aggregated numbers are stored</strong> in a database so your dashboard persists across visits, and are used only to power the charts and stats you see there.</li>
+        <li><strong>You can delete everything at any time</strong> using the "Clear All Data" button at the bottom of the Dashboard. This is permanent and cannot be undone.</li>
+      </ul>
+    </section>
+  </main>
+</body>
+</html>

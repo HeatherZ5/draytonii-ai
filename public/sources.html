@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sources - AI Sustainability Tracker</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="leaf-logo" href="index.html">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20 4C10 4 4 10 4 18v2h2c8 0 14-6 14-16Z" fill="#34a869"/>
+          <path d="M6 20c4-6 8-9 14-14" stroke="#145c3a" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+        AI Sustainability Tracker
+      </a>
+      <nav class="site-nav" aria-label="Main">
+        <a href="index.html">About</a>
+        <a href="your-data.html">Your Data</a>
+        <a href="sources.html" class="active">Sources</a>
+        <a href="login.html" class="nav-cta">Login / Sign Up</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-main">
+    <h1>Sources</h1>
+    <p class="lede">Every figure quoted on the About page and used to calibrate this dashboard's fallback estimates is cited below, alongside the sources behind our name.</p>
+
+    <section class="page-section">
+      <h2>Environmental Footprint of AI</h2>
+
+      <h3>Carbon Emissions</h3>
+      <ul class="source-list">
+        <li>
+          <span class="source-title">Patterson, Gonzalez, Le, Liang, Munguia, Rothchild, So, Texier, Dean - "Carbon Emissions and Large Neural Network Training" (2021)</span>
+          <span class="source-meta"><a href="https://arxiv.org/abs/2104.10350" target="_blank" rel="noopener">arXiv:2104.10350</a> - full training-footprint methodology; estimates GPT-3's training at ~552 tCO<sub>2</sub>eq.</span>
+        </li>
+        <li>
+          <span class="source-title">Luccioni, Jernite, Strubell - "Power Hungry Processing: Watts Driving the Cost of AI Deployment?" (2024, ACM FAccT)</span>
+          <span class="source-meta"><a href="https://arxiv.org/abs/2311.16863" target="_blank" rel="noopener">arXiv:2311.16863</a> - first systematic comparison of inference-time energy/carbon cost across model types.</span>
+        </li>
+        <li>
+          <span class="source-title">Jegham, Abdelatti, Elmoubarki, Hendawi - "How Hungry is AI? Benchmarking Energy, Water, and Carbon Footprint of LLM Inference" (2025)</span>
+          <span class="source-meta"><a href="https://arxiv.org/abs/2505.09598" target="_blank" rel="noopener">arXiv:2505.09598</a> - infrastructure-aware benchmark of 30 commercial models, with energy, water, and carbon side by side.</span>
+        </li>
+        <li>
+          <span class="source-title">"CarbonScaling: Extending Neural Scaling Laws for Carbon Footprint in LLMs" (2025)</span>
+          <span class="source-meta"><a href="https://arxiv.org/pdf/2508.06524" target="_blank" rel="noopener">arXiv:2508.06524</a> - a scaling-law approach for estimating carbon footprint from model size/compute.</span>
+        </li>
+        <li>
+          <span class="source-title">Google - "Measuring the Environmental Impact of Delivering AI at Google Scale" (Aug 2025)</span>
+          <span class="source-meta"><a href="https://arxiv.org/abs/2508.15734" target="_blank" rel="noopener">arXiv:2508.15734</a> - Google's own production-measured figures for a median Gemini Apps text prompt: 0.24 Wh energy, 0.03 gCO<sub>2</sub>e, 0.26 mL water; reports a 44x reduction in per-prompt carbon over the prior 12 months.</span>
+        </li>
+      </ul>
+      <p class="muted" style="font-size:0.85rem;">Note: Anthropic has not published a per-query or training-level carbon/energy methodology for Claude as of mid-2026. Where this dashboard estimates Claude's footprint, it is explicitly flagged as an extrapolation from comparable models, not first-party data.</p>
+
+      <h3>Water Consumption</h3>
+      <ul class="source-list">
+        <li>
+          <span class="source-title">Li, Yang, Islam, Ren - "Making AI Less 'Thirsty': Uncovering and Addressing the Secret Water Footprint of AI Models" (2023)</span>
+          <span class="source-meta"><a href="https://arxiv.org/abs/2304.03271" target="_blank" rel="noopener">arXiv:2304.03271</a> (also in <a href="https://cacm.acm.org/sustainability-and-computing/making-ai-less-thirsty/" target="_blank" rel="noopener">Communications of the ACM</a>) - GPT-3 training consumed an estimated ~700,000 L on-site and ~5.4 million L total; inference estimated at roughly 10-25 mL per prompt (2023-era infrastructure).</span>
+        </li>
+        <li>
+          <span class="source-title">Jegham et al., "How Hungry is AI?" (2025)</span>
+          <span class="source-meta"><a href="https://arxiv.org/abs/2505.09598" target="_blank" rel="noopener">arXiv:2505.09598</a> - water-per-prompt reported across 30 commercial models with more current infrastructure.</span>
+        </li>
+        <li>
+          <span class="source-title">Google - "Measuring the Environmental Impact of Delivering AI at Google Scale" (2025)</span>
+          <span class="source-meta"><a href="https://arxiv.org/abs/2508.15734" target="_blank" rel="noopener">arXiv:2508.15734</a> - Gemini-specific measured figure of 0.26 mL water per median text prompt.</span>
+        </li>
+        <li>
+          <span class="source-title">World Economic Forum - "The Water Challenge for Semiconductor Manufacturing and Big Tech"</span>
+          <span class="source-meta"><a href="https://www.weforum.org/stories/2024/07/the-water-challenge-for-semiconductor-manufacturing-and-big-tech-what-needs-to-be-done/" target="_blank" rel="noopener">weforum.org, 2024</a></span>
+        </li>
+        <li>
+          <span class="source-title">IDTechEx - "Water Usage in Semiconductor Manufacturing to Double by 2035"</span>
+          <span class="source-meta"><a href="https://www.idtechex.com/en/research-article/water-usage-in-semiconductor-manufacturing-to-double-by-2035/32746" target="_blank" rel="noopener">idtechex.com</a> - a single advanced fab can use 20-38 million L/day; TSMC alone used 101 billion L in 2023.</span>
+        </li>
+        <li>
+          <span class="source-title">Rare - "AI &amp; Water Use: Context, Scale, and Justice" (2026)</span>
+          <span class="source-meta"><a href="https://rare.org/wp-content/uploads/2026/05/AI-and-Water-Use-Updated.pdf" target="_blank" rel="noopener">rare.org</a> - context and equity framing around AI-related water use.</span>
+        </li>
+      </ul>
+
+      <h3>Electricity Consumption</h3>
+      <ul class="source-list">
+        <li>
+          <span class="source-title">Google - "Measuring the Environmental Impact of Delivering AI at Google Scale" (2025)</span>
+          <span class="source-meta"><a href="https://arxiv.org/abs/2508.15734" target="_blank" rel="noopener">arXiv:2508.15734</a> - Gemini: 0.24 Wh per median text prompt (May 2025), a full-stack measurement including host CPUs, RAM, and data center overhead.</span>
+        </li>
+        <li>
+          <span class="source-title">Epoch AI - "How much energy does ChatGPT use?" (2025)</span>
+          <span class="source-meta"><a href="https://epoch.ai/gradient-updates/how-much-energy-does-chatgpt-use" target="_blank" rel="noopener">epoch.ai</a> - independent estimate that a typical GPT-4o query uses ~0.3 Wh.</span>
+        </li>
+        <li>
+          <span class="source-title">Patterson et al. (2021)</span>
+          <span class="source-meta"><a href="https://arxiv.org/abs/2104.10350" target="_blank" rel="noopener">arXiv:2104.10350</a> - training-side electricity; GPT-3's training run used an estimated 1,287 MWh.</span>
+        </li>
+        <li>
+          <span class="source-title">Hannah Ritchie (Our World in Data) - "How much electricity does AI consume?" (2025)</span>
+          <span class="source-meta"><a href="https://hannahritchie.substack.com/p/ai-electricity-2025" target="_blank" rel="noopener">hannahritchie.substack.com</a> - sourced synthesis and broader grid/data-center context.</span>
+        </li>
+      </ul>
+      <p class="muted" style="font-size:0.85rem;">Note: OpenAI's only public electricity figure (0.34 Wh) comes from a statement by Sam Altman, not a technical report, so this dashboard uses the independently-derived Epoch AI figure instead. Anthropic has disclosed no per-query figures at all as of mid-2026.</p>
+
+      <h3>Metals and Minerals Consumption</h3>
+      <ul class="source-list">
+        <li>
+          <span class="source-title">Berg, Ziemer, Polo Anaya (CSIS) - "Mineral Demands for Resilient Semiconductor Supply Chains: The Role of the Western Hemisphere" (2025)</span>
+          <span class="source-meta"><a href="https://www.csis.org/analysis/mineral-demands-resilient-semiconductor-supply-chains" target="_blank" rel="noopener">csis.org</a> - flags gallium, germanium, palladium, and silicon as the minerals most central to chip production.</span>
+        </li>
+        <li>
+          <span class="source-title">"Chipping in: Critical minerals for semiconductor manufacturing in the U.S." (MIT Science Policy Review, 2023)</span>
+          <span class="source-meta"><a href="https://sciencepolicyreview.org/wp-content/uploads/securepdfs/2023/08/MITSPR-v4-191618004005.pdf" target="_blank" rel="noopener">sciencepolicyreview.org</a> - technical breakdown of which minerals go into which parts of chip fabrication.</span>
+        </li>
+        <li>
+          <span class="source-title">Foreign Policy Analytics - "Artificial Intelligence and the Critical Minerals Crunch" (2025)</span>
+          <span class="source-meta"><a href="https://fpanalytics.foreignpolicy.com/2025/07/18/artificial-intelligence-critical-minerals-supply-chains/" target="_blank" rel="noopener">fpanalytics.foreignpolicy.com</a> - framing of AI-driven GPU demand and mineral supply concentration.</span>
+        </li>
+      </ul>
+      <p class="muted" style="font-size:0.85rem;">Note: no public bill-of-materials data exists per GPU or AI chip from NVIDIA, TSMC, or the AI companies themselves, so this dashboard does not fabricate a per-prompt minerals estimate when EcoLogits itself doesn't report one.</p>
+    </section>
+
+    <section class="page-section">
+      <h2>Rana Draytonii (Our Name)</h2>
+      <ul class="source-list">
+        <li>
+          <span class="source-title">U.S. Fish &amp; Wildlife Service - "California Red-Legged Frog (Rana draytonii)"</span>
+          <span class="source-meta"><a href="https://www.fws.gov/species/california-red-legged-frog-rana-draytonii" target="_blank" rel="noopener">fws.gov</a></span>
+        </li>
+        <li>
+          <span class="source-title">National Wildlife Federation - "California Red-Legged Frog"</span>
+          <span class="source-meta"><a href="https://www.nwf.org/Educational-Resources/Wildlife-Guide/Amphibians/California-Red-Legged-Frog" target="_blank" rel="noopener">nwf.org</a></span>
+        </li>
+        <li>
+          <span class="source-title">NatureServe Explorer - "Rana draytonii"</span>
+          <span class="source-meta"><a href="https://explorer.natureserve.org/Taxon/ELEMENT_GLOBAL.2.105364/Rana_draytonii" target="_blank" rel="noopener">explorer.natureserve.org</a></span>
+        </li>
+      </ul>
+    </section>
+  </main>
+</body>
+</html>

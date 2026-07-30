@@ -9,7 +9,14 @@
  * model name for the EcoLogits estimate.
  */
 
-const { estimateTokens } = require('../tokenizer');
+const CHARS_PER_TOKEN = 4;
+
+function estimateTokens(text) {
+  if (!text) return 0;
+  const trimmed = String(text).trim();
+  if (!trimmed) return 0;
+  return Math.max(1, Math.ceil(trimmed.length / CHARS_PER_TOKEN));
+}
 
 const DEFAULT_CLAUDE_MODEL = 'claude-3-5-sonnet-20241022';
 

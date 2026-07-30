@@ -10,6 +10,14 @@ const { loadStore, emptyAssistantBucket } = require('./store');
 
 const WINDOW_DAYS = { day: 1, week: 7, month: 30, year: 365 };
 const ASSISTANTS = ['chatgpt', 'claude', 'gemini'];
+const SUM_FIELDS = [
+  'prompts', 'tokensIn', 'tokensOut',
+  'energyKwh', 'energyMin', 'energyMax',
+  'co2Kg', 'co2Min', 'co2Max',
+  'waterL', 'waterMin', 'waterMax', 'waterCount',
+  'mineralsKg', 'mineralsMin', 'mineralsMax', 'mineralsCount',
+  'ecologitsCount', 'fallbackCount',
+];
 
 function toDate(dayKey) {
   return new Date(`${dayKey}T00:00:00.000Z`);
@@ -25,8 +33,8 @@ function latestDay(store) {
   return days.sort().at(-1);
 }
 
-function getStatsForPeriod(period) {
-  const store = loadStore();
+async function getStatsForPeriod(period) {
+  const store = await loadStore();
   const windowDays = WINDOW_DAYS[period] || WINDOW_DAYS.day;
   const anchor = toDate(latestDay(store));
   const rangeEnd = formatDay(anchor);
@@ -41,23 +49,16 @@ function getStatsForPeriod(period) {
     if (day < rangeStart || day > rangeEnd) continue;
     for (const [assistant, bucket] of Object.entries(assistants)) {
       if (!byAssistant[assistant]) byAssistant[assistant] = emptyAssistantBucket();
-      byAssistant[assistant].prompts += bucket.prompts;
-      byAssistant[assistant].tokensIn += bucket.tokensIn;
-      byAssistant[assistant].tokensOut += bucket.tokensOut;
-      byAssistant[assistant].energyKwh += bucket.energyKwh;
-      byAssistant[assistant].co2Kg += bucket.co2Kg;
-      byAssistant[assistant].ecologitsCount += bucket.ecologitsCount;
-      byAssistant[assistant].fallbackCount += bucket.fallbackCount;
+      for (const field of SUM_FIELDS) {
+        byAssistant[assistant][field] += bucket[field] || 0;
+      }
     }
   }
 
-  const totals = { prompts: 0, tokensIn: 0, tokensOut: 0, energyKwh: 0, co2Kg: 0 };
+  const totals = {};
+  for (const field of SUM_FIELDS) totals[field] = 0;
   for (const bucket of Object.values(byAssistant)) {
-    totals.prompts += bucket.prompts;
-    totals.tokensIn += bucket.tokensIn;
-    totals.tokensOut += bucket.tokensOut;
-    totals.energyKwh += bucket.energyKwh;
-    totals.co2Kg += bucket.co2Kg;
+    for (const field of SUM_FIELDS) totals[field] += bucket[field];
   }
 
   const hasAnyData = Object.keys(store.days).length > 0;
@@ -72,4 +73,25 @@ function getStatsForPeriod(period) {
   };
 }
 
-module.exports = { getStatsForPeriod, ASSISTANTS, WINDOW_DAYS };
+/**
+ * Per-day prompt counts (all-time, all days present in the store) broken
+ * down by assistant, for the calendar carousel. Kept small and simple -
+ * the client groups these into months and computes its own color tiers.
+ */
+async function getCalendarData() {
+  const store = await loadStore();
+  const days = {};
+  for (const [day, assistants] of Object.entries(store.days)) {
+    const perAssistant = {};
+    let total = 0;
+    for (const key of ASSISTANTS) {
+      const prompts = (assistants[key] && assistants[key].prompts) || 0;
+      perAssistant[key] = prompts;
+      total += prompts;
+    }
+    days[day] = { ...perAssistant, total };
+  }
+  return { days };
+}
+
+module.exports = { getStatsForPeriod, getCalendarData, ASSISTANTS, WINDOW_DAYS };

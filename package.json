@@ -10,8 +10,9 @@
   },
   "license": "MIT",
   "dependencies": {
-    "adm-zip": "^0.5.16",
+    "@supabase/supabase-js": "^2.45.4",
     "express": "^4.21.2",
+    "jszip": "^3.10.1",
     "multer": "^2.0.1"
   }
 }

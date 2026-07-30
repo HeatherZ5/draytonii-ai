@@ -28,9 +28,16 @@
     <section class="card upload-card">
       <div class="upload-copy">
         <strong>Import your AI usage</strong>
-        <p class="muted">Upload the official data export zip from ChatGPT, Claude, or Gemini (Google Takeout &rarr; Gemini Apps) to add it to your dashboard.</p>
+        <p class="muted">Tell us which platform this export is from, then upload the official data export zip (Google Takeout &rarr; Gemini Apps, for Gemini) to add it to your dashboard.</p>
       </div>
       <div class="upload-controls">
+        <label class="select-label" for="platformSelect">Platform</label>
+        <select id="platformSelect" class="platform-select">
+          <option value="" disabled selected>Choose platform&hellip;</option>
+          <option value="chatgpt">ChatGPT</option>
+          <option value="claude">Claude</option>
+          <option value="gemini">Gemini</option>
+        </select>
         <label class="file-label btn btn-outline">
           <span id="fileLabelText">Choose .zip file</span>
           <input type="file" id="fileInput" accept=".zip" hidden />
@@ -38,6 +45,31 @@
         <button id="uploadBtn" class="btn btn-primary" disabled>Upload Export</button>
       </div>
       <div id="uploadStatus" class="upload-status" aria-live="polite"></div>
+    </section>
+
+    <section class="card calendar-card">
+      <div class="calendar-header">
+        <h2>Usage Calendar</h2>
+        <select id="calendarScopeSelect" class="platform-select">
+          <option value="total">All Assistants</option>
+          <option value="chatgpt">ChatGPT</option>
+          <option value="claude">Claude</option>
+          <option value="gemini">Gemini</option>
+        </select>
+      </div>
+
+      <div class="calendar-carousel">
+        <button class="carousel-nav" id="calPrevBtn" aria-label="Previous month">&#8249;</button>
+        <div class="calendar-track" id="calendarTrack">
+          <div class="month-panel side" id="calSideLeft"></div>
+          <div class="month-panel center" id="calCenter"></div>
+          <div class="month-panel side" id="calSideRight"></div>
+        </div>
+        <button class="carousel-nav" id="calNextBtn" aria-label="Next month">&#8250;</button>
+      </div>
+
+      <ul class="calendar-legend" id="calendarLegend"></ul>
+      <p class="data-note muted calendar-footnote">Shading reflects prompt counts and is an approximation - days with no imported data are left blank.</p>
     </section>
 
     <p class="range-label muted" id="rangeLabel"></p>
@@ -57,33 +89,49 @@
       </div>
     </section>
 
-    <section class="card panel">
+    <section class="card panel" data-metric="co2">
       <div class="panel-header">
-        <h2>Total CO<sub>2</sub> Emissions</h2>
-        <span class="panel-unit muted">kg CO<sub>2</sub>eq</span>
+        <h2>CO<sub>2</sub> Emissions</h2>
+        <div class="tab-toggle" data-tabs="co2">
+          <button data-tab="numbers" class="active">Numbers</button>
+          <button data-tab="chart">Chart</button>
+        </div>
       </div>
-      <div class="panel-body split">
+
+      <div class="panel-body" id="co2Numbers">
+        <div class="metric-total">
+          <div class="stat-number" id="co2Total">&mdash;</div>
+          <div class="stat-label">kg CO<sub>2</sub>eq</div>
+          <div class="metric-range" id="co2Range"></div>
+        </div>
+        <ul class="energy-breakdown" id="co2BreakdownList"></ul>
+      </div>
+
+      <div class="panel-body split hidden" id="co2Chart">
         <div class="pie-wrap">
           <div class="pie-chart" id="co2Pie"></div>
           <div class="pie-center" id="co2Center"></div>
         </div>
         <ul class="legend" id="co2Legend"></ul>
       </div>
+
+      <p class="panel-footnote muted">Estimate only - based on EcoLogits' published model, not a direct measurement of Anthropic/OpenAI/Google infrastructure.</p>
     </section>
 
-    <section class="card panel">
+    <section class="card panel" data-metric="energy">
       <div class="panel-header">
-        <h2>Estimated Energy</h2>
-        <div class="tab-toggle" id="energyTabs">
+        <h2>Electricity Consumption</h2>
+        <div class="tab-toggle" data-tabs="energy">
           <button data-tab="numbers" class="active">Numbers</button>
           <button data-tab="chart">Chart</button>
         </div>
       </div>
 
       <div class="panel-body" id="energyNumbers">
-        <div class="energy-total">
+        <div class="metric-total">
           <div class="stat-number" id="energyTotal">&mdash;</div>
-          <div class="stat-label">Total kWh</div>
+          <div class="stat-label">kWh</div>
+          <div class="metric-range" id="energyRange"></div>
         </div>
         <ul class="energy-breakdown" id="energyBreakdownList"></ul>
       </div>
@@ -95,11 +143,77 @@
         </div>
         <ul class="legend" id="energyLegend"></ul>
       </div>
+
+      <p class="panel-footnote muted">Estimate only - based on EcoLogits' published model, not a direct measurement of Anthropic/OpenAI/Google infrastructure.</p>
+    </section>
+
+    <section class="card panel" data-metric="water">
+      <div class="panel-header">
+        <h2>Water Consumption</h2>
+        <div class="tab-toggle" data-tabs="water">
+          <button data-tab="numbers" class="active">Numbers</button>
+          <button data-tab="chart">Chart</button>
+        </div>
+      </div>
+
+      <div class="panel-body" id="waterNumbers">
+        <div class="metric-total">
+          <div class="stat-number" id="waterTotal">&mdash;</div>
+          <div class="stat-label">Liters</div>
+          <div class="metric-range" id="waterRange"></div>
+        </div>
+        <ul class="energy-breakdown" id="waterBreakdownList"></ul>
+      </div>
+
+      <div class="panel-body split hidden" id="waterChart">
+        <div class="pie-wrap">
+          <div class="pie-chart" id="waterPie"></div>
+          <div class="pie-center" id="waterCenter"></div>
+        </div>
+        <ul class="legend" id="waterLegend"></ul>
+      </div>
+
+      <p class="panel-footnote muted" id="waterFootnote">Estimate only, from EcoLogits' water consumption footprint (WCF) figures. Only responses EcoLogits could match to a registered model contribute here - others show as unavailable rather than a guessed number.</p>
+    </section>
+
+    <section class="card panel" data-metric="minerals">
+      <div class="panel-header">
+        <h2>Metals and Minerals Consumption</h2>
+        <div class="tab-toggle" data-tabs="minerals">
+          <button data-tab="numbers" class="active">Numbers</button>
+          <button data-tab="chart">Chart</button>
+        </div>
+      </div>
+
+      <div class="panel-body" id="mineralsNumbers">
+        <div class="metric-total">
+          <div class="stat-number" id="mineralsTotal">&mdash;</div>
+          <div class="stat-label">kg Sb-eq</div>
+          <div class="metric-range" id="mineralsRange"></div>
+        </div>
+        <ul class="energy-breakdown" id="mineralsBreakdownList"></ul>
+      </div>
+
+      <div class="panel-body split hidden" id="mineralsChart">
+        <div class="pie-wrap">
+          <div class="pie-chart" id="mineralsPie"></div>
+          <div class="pie-center" id="mineralsCenter"></div>
+        </div>
+        <ul class="legend" id="mineralsLegend"></ul>
+      </div>
+
+      <p class="panel-footnote muted" id="mineralsFootnote">Estimate only, from EcoLogits' abiotic depletion potential (elements) figures, expressed in kg antimony-equivalent. Only responses EcoLogits could match to a registered model contribute here - others show as unavailable rather than a guessed number.</p>
     </section>
 
     <footer class="data-note muted" id="dataNote"></footer>
+
+    <div class="clear-data-wrap">
+      <button id="clearDataBtn" class="btn btn-outline danger">Clear All Data</button>
+    </div>
   </main>
 
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="parsers.js"></script>
   <script src="dashboard.js"></script>
 </body>
 </html>

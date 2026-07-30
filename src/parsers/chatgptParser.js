@@ -9,7 +9,14 @@
  * user -> assistant text messages into "turns".
  */
 
-const { estimateTokens } = require('../tokenizer');
+const CHARS_PER_TOKEN = 4;
+
+function estimateTokens(text) {
+  if (!text) return 0;
+  const trimmed = String(text).trim();
+  if (!trimmed) return 0;
+  return Math.max(1, Math.ceil(trimmed.length / CHARS_PER_TOKEN));
+}
 
 function extractText(content) {
   if (!content) return '';

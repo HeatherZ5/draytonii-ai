@@ -12,7 +12,14 @@
  * ChatGPT/Claude figures.
  */
 
-const { estimateTokens } = require('../tokenizer');
+const CHARS_PER_TOKEN = 4;
+
+function estimateTokens(text) {
+  if (!text) return 0;
+  const trimmed = String(text).trim();
+  if (!trimmed) return 0;
+  return Math.max(1, Math.ceil(trimmed.length / CHARS_PER_TOKEN));
+}
 
 const DEFAULT_GEMINI_MODEL = 'gemini-2.0-flash';
 // Rough assumed average reply length, since Takeout doesn't include it.
@@ -25,19 +32,34 @@ function extractPromptText(title) {
   return title.replace(/^Asked Gemini Apps\s*/i, '').trim();
 }
 
-function parseGeminiExport(activityJsonText) {
-  const records = JSON.parse(activityJsonText);
+/**
+ * Runs over already-parsed activity records (possibly merged from several
+ * MyActivity.json files found in the upload) and keeps only the ones that
+ * are actually Gemini activity - everything else (Search, YouTube, Maps,
+ * etc. also export a "MyActivity.json") is silently skipped here, which is
+ * what lets callers merge records from multiple/unknown files without
+ * needing to know in advance which file is the "real" Gemini one.
+ */
+function parseGeminiRecords(records) {
   const turns = [];
   let promptCount = 0;
+  const seen = new Set();
 
   for (const record of records) {
-    const isGemini =
-      record.header && /gemini/i.test(record.header) ||
-      (Array.isArray(record.products) && record.products.some((p) => /gemini/i.test(p)));
+    // Only records whose header is exactly "Gemini Apps" are real prompts
+    // typed into the Gemini app/website. A loose substring match on
+    // header/products also sweeps in Gemini-flavored features baked into
+    // other Google products (Search, Workspace, etc.), which massively
+    // overcounts.
+    const isGemini = typeof record.header === 'string' && record.header.trim().toLowerCase() === 'gemini apps';
     if (!isGemini) continue;
 
     const promptText = extractPromptText(record.title);
     if (!promptText) continue;
+
+    const dedupeKey = `${record.time || ''}::${record.title || ''}`;
+    if (seen.has(dedupeKey)) continue;
+    seen.add(dedupeKey);
 
     promptCount += 1;
     turns.push({
@@ -53,4 +75,14 @@ function parseGeminiExport(activityJsonText) {
   return { turns, conversationCount: promptCount, modelAssumed: true, responseTextUnavailable: true };
 }
 
-module.exports = { parseGeminiExport, DEFAULT_GEMINI_MODEL, ASSUMED_COMPLETION_TOKENS };
+function parseGeminiExport(activityJsonText) {
+  const records = JSON.parse(activityJsonText);
+  return parseGeminiRecords(records);
+}
+
+module.exports = {
+  parseGeminiExport,
+  parseGeminiRecords,
+  DEFAULT_GEMINI_MODEL,
+  ASSUMED_COMPLETION_TOKENS,
+};
