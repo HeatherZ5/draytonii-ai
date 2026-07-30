@@ -9,12 +9,15 @@
 </head>
 <body>
   <header class="topbar">
-    <div class="leaf-logo">
-      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M20 4C10 4 4 10 4 18v2h2c8 0 14-6 14-16Z" fill="#34a869"/>
-        <path d="M6 20c4-6 8-9 14-14" stroke="#145c3a" stroke-width="1.4" stroke-linecap="round"/>
-      </svg>
-      Project Draytonii
+    <div class="topbar-left">
+      <a class="leaf-logo" href="index.html">
+        <img src="images/frog-logo.png" alt="Project Draytonii logo" />
+        Project Draytonii
+      </a>
+      <nav class="app-nav" aria-label="App">
+        <a href="dashboard.html" class="active">Dashboard</a>
+        <a href="meet-tonii.html">Meet Tonii</a>
+      </nav>
     </div>
     <div class="period-toggle" id="periodToggle" role="tablist" aria-label="Time period">
       <button data-period="day" class="active" role="tab" aria-selected="true">Day</button>

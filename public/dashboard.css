@@ -11,6 +11,169 @@ body {
   gap: 12px;
 }
 
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.app-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.app-nav a {
+  text-decoration: none;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  padding: 7px 14px;
+  border-radius: 999px;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.app-nav a:hover {
+  background: rgba(27, 122, 77, 0.08);
+  color: var(--color-primary-dark);
+}
+
+.app-nav a.active {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+/* --- Meet Tonii chat -------------------------------------------------- */
+
+.chat-card {
+  display: flex;
+  flex-direction: column;
+  height: 540px;
+  padding: 0;
+  overflow: hidden;
+}
+
+.chat-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.chat-header img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.chat-header-text strong {
+  display: block;
+  font-size: 0.95rem;
+}
+
+.chat-header-text span {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.chat-msg {
+  max-width: 78%;
+  padding: 10px 14px;
+  border-radius: 14px;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.chat-msg.bot {
+  align-self: flex-start;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-bottom-left-radius: 4px;
+}
+
+.chat-msg.user {
+  align-self: flex-end;
+  background: var(--color-primary);
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+
+.chat-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 20px 14px;
+  flex-shrink: 0;
+}
+
+.chat-suggestions button {
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-primary-dark);
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-primary-light);
+  border-radius: 999px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.chat-suggestions button:hover {
+  background: rgba(27, 122, 77, 0.08);
+}
+
+.chat-input-row {
+  display: flex;
+  gap: 8px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.chat-input-row input {
+  flex: 1;
+  padding: 10px 16px;
+  border-radius: 999px;
+  border: 1.5px solid var(--color-border);
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
+.chat-input-row input:focus {
+  outline: none;
+  border-color: var(--color-primary-light);
+}
+
+.receipt-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.receipt-card p {
+  margin: 4px 0 0;
+  font-size: 0.85rem;
+}
+
 .period-toggle {
   display: flex;
   background: var(--color-surface);

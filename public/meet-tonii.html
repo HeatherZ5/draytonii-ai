@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Meet Tonii - Project Draytonii</title>
+<link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="dashboard.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-left">
+      <a class="leaf-logo" href="index.html">
+        <img src="images/frog-logo.png" alt="Project Draytonii logo" />
+        Project Draytonii
+      </a>
+      <nav class="app-nav" aria-label="App">
+        <a href="dashboard.html">Dashboard</a>
+        <a href="meet-tonii.html" class="active">Meet Tonii</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="card chat-card">
+      <div class="chat-header">
+        <img src="images/frog-logo.png" alt="Tonii" />
+        <div class="chat-header-text">
+          <strong>Tonii</strong>
+          <span>Your AI sustainability guide</span>
+        </div>
+      </div>
+      <div class="chat-messages" id="chatMessages"></div>
+      <div class="chat-suggestions" id="chatSuggestions"></div>
+      <form class="chat-input-row" id="chatForm">
+        <input type="text" id="chatInput" placeholder="Ask Tonii about your AI footprint…" autocomplete="off" />
+        <button type="submit" class="btn btn-primary">Send</button>
+      </form>
+    </section>
+
+    <section class="card receipt-card">
+      <div>
+        <strong>Sustainability Receipt</strong>
+        <p class="muted">Generate a one-page PDF covering your footprint, habits, and recommendations from the last 30 days.</p>
+      </div>
+      <button id="generateReceiptBtn" class="btn btn-outline">Generate Receipt (PDF)</button>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="meet-tonii.js"></script>
+</body>
+</html>
