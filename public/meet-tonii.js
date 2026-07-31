@@ -173,54 +173,66 @@
   const TOPICS = [
     {
       test: /^(hi|hello|hey|yo)\b/i,
-      handle: () => "Hi, I'm Tonii! Ask me what any of the metrics mean, why AI uses energy and water, how confident these numbers are, or ask about your own habits and how to improve them.",
+      handle: (i) => {
+        if (!i.hasData) return "Hi, I'm Tonii! I'm here to analyze your own AI usage and help you cut its footprint. Upload an export from the Dashboard first, then ask me things like \"how are my habits?\" or \"how can I reduce my footprint?\"";
+        return `Hi, I'm Tonii! I've looked at your last 30 days: ${Math.round(i.totals.prompts)} prompts, about ${fmt(i.totals.co2Kg, 'kg CO2eq')}${i.largestContributor ? `, mostly from ${ASSISTANT_LABELS[i.largestContributor]}` : ''}. Ask me "how can I reduce my footprint?" or "how are my habits?" and I'll dig into your specific numbers.`;
+      },
     },
     {
       test: /\bco2\b|carbon|emission/i,
       handle: (i) => {
-        const base = 'CO2 (carbon dioxide equivalent) estimates the greenhouse gas impact of generating a model\'s electricity - both the emissions from powering the data center and the grid mix behind it.';
-        if (!i.hasData) return base;
-        return `${base}\n\nYour last 30 days: about ${fmt(i.totals.co2Kg, 'kg CO2eq')} (EcoLogits range: ${fmt(i.totals.co2Min, 'kg')} – ${fmt(i.totals.co2Max, 'kg')}).`;
+        if (!i.hasData) return 'CO2 (carbon dioxide equivalent) estimates the greenhouse gas impact of generating a model\'s electricity. Upload your data and I\'ll show what that means for you specifically, plus how to bring it down.';
+        const parts = [`Your last 30 days produced about ${fmt(i.totals.co2Kg, 'kg CO2eq')} (range: ${fmt(i.totals.co2Min, 'kg')} – ${fmt(i.totals.co2Max, 'kg')}).`];
+        if (i.largestContributor) {
+          const share = i.totals.co2Kg > 0 ? (i.largestCo2 / i.totals.co2Kg) * 100 : 0;
+          parts.push(`${ASSISTANT_LABELS[i.largestContributor]} drives about ${share.toFixed(0)}% of it - that's your single biggest lever for cutting this number.`);
+        }
+        parts.push('Ask me "how can I reduce this?" for specific next steps.');
+        return parts.join(' ');
       },
     },
     {
       test: /\benergy\b|electric|kwh|power/i,
       handle: (i) => {
-        const base = 'Electricity consumption covers the GPU/TPU compute used to run the model, plus the servers and data-center overhead (cooling, networking) around it for that single reply.';
-        if (!i.hasData) return base;
-        return `${base}\n\nYour last 30 days: about ${fmt(i.totals.energyKwh, 'kWh')} (range: ${fmt(i.totals.energyMin, 'kWh')} – ${fmt(i.totals.energyMax, 'kWh')}).`;
+        if (!i.hasData) return 'Electricity consumption covers the compute, cooling, and data-center overhead behind each reply. Upload your data and I\'ll break down your own usage and where to trim it.';
+        const parts = [`Your last 30 days used about ${fmt(i.totals.energyKwh, 'kWh')} (range: ${fmt(i.totals.energyMin, 'kWh')} – ${fmt(i.totals.energyMax, 'kWh')}), averaging ${Math.round(i.avgOutputTokens)} output tokens per reply.`];
+        if (i.avgOutputTokens > FALLBACK_TYPICAL_OUTPUT_TOKENS * 1.3) {
+          parts.push('That reply length is well above typical - shorter, more targeted asks would meaningfully cut this.');
+        }
+        return parts.join(' ');
       },
     },
     {
       test: /\bwater\b/i,
       handle: (i) => {
-        const base = 'Water consumption mostly comes from evaporative cooling towers that keep data-center servers from overheating, plus the water used upstream in generating electricity.';
-        if (!i.hasData || i.totals.waterCount === 0) return `${base}\n\nNo EcoLogits water figure is available for your uploads yet - it's only reported for responses matched to a registered model.`;
-        return `${base}\n\nYour last 30 days: about ${fmt(i.totals.waterL, 'L')} (range: ${fmt(i.totals.waterMin, 'L')} – ${fmt(i.totals.waterMax, 'L')}).`;
+        const base = 'Water consumption mostly comes from data-center cooling and the electricity generation behind your prompts.';
+        if (!i.hasData || i.totals.waterCount === 0) return `${base} No EcoLogits water figure is available for your uploads yet - it's only reported for responses matched to a registered model, so I can't tell you your personal number right now.`;
+        return `${base} Your last 30 days: about ${fmt(i.totals.waterL, 'L')} (range: ${fmt(i.totals.waterMin, 'L')} – ${fmt(i.totals.waterMax, 'L')}). Check the Comparison tab on the Dashboard's Water panel to see that in rain-drop terms.`;
       },
     },
     {
       test: /mineral|metal|antimony|sb-eq/i,
       handle: (i) => {
-        const base = 'The minerals figure (abiotic depletion potential, in kg antimony-equivalent) reflects the finite metals and elements consumed making the chips that ran your prompt - things like gallium, palladium, and silicon.';
-        if (!i.hasData || i.totals.mineralsCount === 0) return `${base}\n\nNo EcoLogits minerals figure is available for your uploads yet - it's only reported for responses matched to a registered model, and no assistant currently publishes a public per-chip bill of materials.`;
-        return `${base}\n\nYour last 30 days: about ${fmt(i.totals.mineralsKg, 'kg Sb-eq')} (range: ${fmt(i.totals.mineralsMin, 'kg')} – ${fmt(i.totals.mineralsMax, 'kg')}).`;
+        const base = 'The minerals figure reflects the finite metals consumed making the chips that ran your prompts.';
+        if (!i.hasData || i.totals.mineralsCount === 0) return `${base} No EcoLogits minerals figure is available for your uploads yet - it's only reported for responses matched to a registered model.`;
+        return `${base} Your last 30 days: about ${fmt(i.totals.mineralsKg, 'kg Sb-eq')} (range: ${fmt(i.totals.mineralsMin, 'kg')} – ${fmt(i.totals.mineralsMax, 'kg')}). This one mostly tracks how many prompts you send, not how long your replies are - fewer, more deliberate prompts is the main lever here.`;
       },
     },
     {
       test: /why.*(energy|power|consum)|consum.*(energy|power)/i,
-      handle: () => "AI models run on GPUs (or TPUs) - specialized chips doing billions of matrix calculations per reply. Every one of those calculations draws electricity, and the data center around the chips needs its own power for cooling and networking on top of that. Training a model first (a one-time cost spread across every future reply) is even more intensive - GPT-3's training run alone is estimated at ~1,287 MWh. So each reply you get carries a small slice of both the ongoing inference cost and that upfront training cost.",
+      handle: (i) => {
+        const base = "AI models run on GPUs (or TPUs) - specialized chips doing billions of matrix calculations per reply. Every calculation draws electricity, and the data center around the chips needs its own power for cooling and networking on top of that.";
+        if (!i.hasData) return base;
+        return `${base} For you specifically: your ${Math.round(i.totals.prompts)} prompts this period averaged ${Math.round(i.avgOutputTokens)} output tokens each - longer replies mean more compute per prompt, so trimming reply length is the fastest way to lower your own draw.`;
+      },
     },
     {
       test: /uncertain|estimate|accura|confiden|precise|reliab/i,
       handle: (i) => {
-        let msg = "These numbers are estimates, not measurements - here's why they carry real uncertainty:\n\n" +
-          "• When possible, we call the EcoLogits API, which models impact from published research on each model's size and hardware. It returns a min-max range, not a single number - we show you the midpoint.\n" +
-          "• When EcoLogits can't match a model (or is unreachable), we fall back to a simpler formula calibrated from independent research (Epoch AI, Google's own published figures) - flagged separately in your data.\n" +
-          "• Claude's export doesn't include which model answered each message, so we assume a default model for every Claude reply.\n" +
-          "• Gemini's export (Google Takeout) doesn't include reply text at all, so both the model and reply length are estimated.";
+        let msg = "These numbers are estimates, not measurements. When possible we call the live EcoLogits API for a real model-based estimate; when that's unavailable we fall back to a simpler calibrated formula that can't report water (except Gemini) or minerals at all.";
         if (i.hasData && i.fallbackRatio !== null) {
-          msg += `\n\nFor your data specifically: ${(i.fallbackRatio * 100).toFixed(0)}% of replies this period used the fallback formula rather than live EcoLogits data.`;
+          msg += ` For your data specifically: ${(i.fallbackRatio * 100).toFixed(0)}% of replies this period used the fallback formula rather than live EcoLogits data`;
+          msg += i.fallbackRatio > 0.3 ? ' - treat your totals as directional, not precise.' : '.';
         }
         return msg;
       },
@@ -228,25 +240,29 @@
     {
       test: /habit|inefficient|pattern|my usage|how am i doing/i,
       handle: (i) => {
-        if (!i.hasData) return "I don't see any usage data yet for the last 30 days - upload an export from the Dashboard first and I'll be able to break down your habits.";
+        if (!i.hasData) return "I don't see any usage data yet for the last 30 days - upload an export from the Dashboard first and I'll break down your habits and how to improve them.";
         const parts = [`Over the last 30 days you sent ${Math.round(i.totals.prompts)} prompts, averaging ${Math.round(i.avgInputTokens)} tokens in and ${Math.round(i.avgOutputTokens)} tokens out per reply.`];
         if (i.largestContributor) parts.push(`${ASSISTANT_LABELS[i.largestContributor]} is your largest contributor to estimated CO2.`);
         if (i.mostEfficient) parts.push(`${ASSISTANT_LABELS[i.mostEfficient]} is your most efficient assistant per prompt, by estimated CO2.`);
-        parts.push('Ask me to "recommend improvements" for specific suggestions.');
+        parts.push('Ask me "how can I reduce my footprint?" and I\'ll turn this into concrete steps for you.');
         return parts.join(' ');
       },
     },
     {
-      test: /recommend|improve|tip|reduce|lower|better|advice/i,
-      handle: (i) => buildRecommendations(i).map((r, idx) => `${idx + 1}. ${r}`).join('\n\n'),
+      test: /recommend|improve|tip|reduce|lower|better|advice|boost|sustainab/i,
+      handle: (i) => {
+        if (!i.hasData) return buildRecommendations(i)[0];
+        const intro = `Based on your last 30 days (${Math.round(i.totals.prompts)} prompts, ${fmt(i.totals.co2Kg, 'kg CO2eq')}), here's how to boost your sustainability:`;
+        return `${intro}\n\n${buildRecommendations(i).map((r, idx) => `${idx + 1}. ${r}`).join('\n\n')}`;
+      },
     },
     {
       test: /receipt|pdf|report|download/i,
-      handle: () => "Click \"Generate Receipt (PDF)\" below and I'll put together a one-page summary of your footprint, habits, and recommendations.",
+      handle: () => "Click \"Generate Receipt (PDF)\" below and I'll analyze your footprint, habits, and the specific steps you can take to improve your sustainability.",
     },
   ];
 
-  const FALLBACK_RESPONSE = "I can help with: what CO2/energy/water/minerals mean, why AI consumes energy, how reliable these estimates are, your own prompting habits, and recommendations to reduce your footprint. What would you like to know?";
+  const FALLBACK_RESPONSE = "I'm focused on analyzing your own AI usage - ask me things like \"how are my habits?\", \"what's my biggest impact area?\", or \"how can I boost my sustainability?\" and I'll dig into your actual numbers. I can also explain what CO2/energy/water/minerals mean or how reliable these estimates are, if that helps interpret your data.";
 
   function respond(userText) {
     const insights = computeInsights();
@@ -260,11 +276,11 @@
 
   function wireChat() {
     const suggestions = [
-      'What does CO2 mean?',
-      'Why does AI use energy?',
-      'How accurate are these numbers?',
       'How are my habits?',
-      'Recommend improvements',
+      'How can I boost my sustainability?',
+      "What's my biggest impact area?",
+      'How accurate are these numbers?',
+      'What does CO2 mean?',
     ];
     const suggestionsEl = el('chatSuggestions');
     suggestions.forEach((text) => {
@@ -275,7 +291,11 @@
       suggestionsEl.appendChild(btn);
     });
 
-    appendMessage("Hi, I'm Tonii! Ask me what any of the metrics mean, why AI uses energy and water, how confident these numbers are, or ask about your own habits and how to improve them.", 'bot');
+    const greetingInsights = computeInsights();
+    const greetingText = greetingInsights.hasData
+      ? `Hi, I'm Tonii! I've looked at your last 30 days: ${Math.round(greetingInsights.totals.prompts)} prompts, about ${fmt(greetingInsights.totals.co2Kg, 'kg CO2eq')}${greetingInsights.largestContributor ? `, mostly from ${ASSISTANT_LABELS[greetingInsights.largestContributor]}` : ''}. Ask me "how can I boost my sustainability?" and I'll dig into your specific numbers.`
+      : "Hi, I'm Tonii! I'm here to analyze your own AI usage and help you boost its sustainability. Upload an export from the Dashboard first, then ask me things like \"how are my habits?\" or \"how can I reduce my footprint?\"";
+    appendMessage(greetingText, 'bot');
 
     const form = el('chatForm');
     const input = el('chatInput');
@@ -471,7 +491,6 @@
     });
   }
 
-  loadContext().catch(() => {});
-  wireChat();
+  loadContext().catch(() => {}).then(wireChat);
   wireReceipt();
 })();
