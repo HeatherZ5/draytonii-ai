@@ -160,6 +160,80 @@ body {
   border-color: var(--color-primary-light);
 }
 
+.pb-msg {
+  max-width: 92% !important;
+}
+
+.pb-heading {
+  margin: 0 0 6px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--color-primary-dark);
+}
+
+.pb-intro {
+  margin: 0 0 14px;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.pb-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pb-row {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.pb-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.pb-input {
+  padding: 9px 12px;
+  border-radius: 10px;
+  border: 1.5px solid var(--color-border);
+  font-family: inherit;
+  font-size: 0.85rem;
+  background: var(--color-surface);
+}
+
+.pb-input:focus {
+  outline: none;
+  border-color: var(--color-primary-light);
+}
+
+.pb-submit {
+  align-self: flex-start;
+  margin-top: 4px;
+}
+
+.pb-result-intro {
+  margin: 0 0 10px;
+  font-size: 0.85rem;
+}
+
+.pb-result {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  margin-bottom: 10px;
+}
+
+.pb-copy {
+  font-size: 0.8rem;
+  padding: 7px 14px;
+}
+
 .receipt-card {
   display: flex;
   align-items: center;

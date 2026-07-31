@@ -6,6 +6,7 @@
   let statsCache = null;
   let calendarCache = null;
   let contextLoadFailed = false;
+  let promptBuilderStage = null; // null | 'awaiting_goal'
 
   const el = (id) => document.getElementById(id);
 
@@ -110,12 +111,12 @@
   function buildRecommendations(insights) {
     const recs = [];
     if (!insights.hasData) {
-      return ['Upload an export from the Dashboard first - recommendations are based on your own usage patterns.'];
+      return ['Please upload an export from the Dashboard first; recommendations are based on your own usage patterns.'];
     }
 
     if (insights.avgOutputTokens > FALLBACK_TYPICAL_OUTPUT_TOKENS * 1.3) {
       recs.push(
-        `Your average reply is about ${Math.round(insights.avgOutputTokens)} tokens, well above the ~${FALLBACK_TYPICAL_OUTPUT_TOKENS}-token baseline these estimates are calibrated against. Asking more targeted questions, or requesting shorter answers when you don't need the full detail, cuts both the footprint and your wait time.`
+        `Your average reply is approximately ${Math.round(insights.avgOutputTokens)} tokens, well above the ~${FALLBACK_TYPICAL_OUTPUT_TOKENS}-token baseline these estimates are calibrated against. Asking more targeted questions, or requesting shorter answers when the full detail is unnecessary, reduces both the footprint and your wait time.`
       );
     }
 
@@ -123,18 +124,18 @@
       const label = ASSISTANT_LABELS[insights.largestContributor];
       const share = insights.totals.co2Kg > 0 ? (insights.largestCo2 / insights.totals.co2Kg) * 100 : 0;
       recs.push(
-        `${label} accounts for about ${share.toFixed(0)}% of your estimated CO2 footprint this period. Reserving it for tasks that actually need its strengths, and using a lighter assistant for quick lookups, is the single biggest lever you have.`
+        `${label} accounts for approximately ${share.toFixed(0)}% of your estimated CO2 footprint this period. Reserving it for tasks that genuinely require its strengths, and using a lighter assistant for quick lookups, is your single largest lever.`
       );
     }
 
     if (insights.fallbackRatio !== null && insights.fallbackRatio > 0.3) {
       recs.push(
-        `About ${(insights.fallbackRatio * 100).toFixed(0)}% of your estimates came from a local fallback formula rather than live EcoLogits data, so treat the totals as directional rather than precise - see the Sources page for what that means.`
+        `Approximately ${(insights.fallbackRatio * 100).toFixed(0)}% of your estimates came from a local fallback formula rather than live EcoLogits data, so please treat the totals as directional rather than precise; see the Sources page for further detail.`
       );
     }
 
-    recs.push('Continue an existing conversation instead of starting a fresh one when the context still applies - re-explaining background makes the model reprocess it from scratch.');
-    recs.push('Batch related questions into a single prompt rather than sending several small back-to-back ones - each request carries fixed overhead regardless of size.');
+    recs.push('Continue an existing conversation instead of starting a new one when the context still applies; re-explaining background requires the model to reprocess it from scratch.');
+    recs.push('Batch related questions into a single prompt rather than sending several small requests in succession; each request carries fixed overhead regardless of size.');
 
     return recs.slice(0, 5);
   }
@@ -170,34 +171,224 @@
     container.scrollTop = container.scrollHeight;
   }
 
+  // --- Prompt Builder ---------------------------------------------------------
+  //
+  // A guided questionnaire, presented as a single message with embedded text
+  // boxes rather than one question per chat turn, so the user is not left to
+  // format ten separate answers independently. Runs entirely client-side and
+  // never leaves the browser, consistent with the rest of this app's privacy
+  // design.
+
+  const PROMPT_BUILDER_QUESTIONS = [
+    {
+      label: 'What is the specific outcome or deliverable you want?',
+      placeholder: 'e.g., a 300-word email, a working code snippet',
+      clause: (v) => `The desired outcome is: ${v}.`,
+    },
+    {
+      label: 'Who is the intended audience for this?',
+      placeholder: 'e.g., executives, beginners, myself',
+      clause: (v) => `The intended audience is ${v}.`,
+    },
+    {
+      label: 'What tone or style should the response use?',
+      placeholder: 'e.g., formal, casual, technical',
+      clause: (v) => `Please use a ${v} tone.`,
+    },
+    {
+      label: 'How long or detailed should the response be?',
+      placeholder: 'e.g., a brief summary, an in-depth report',
+      clause: (v) => `The desired length or level of detail is: ${v}.`,
+    },
+    {
+      label: 'Are there examples, formats, or references it should follow?',
+      placeholder: 'e.g., bullet points, a specific template',
+      clause: (v) => `Please follow this format or example: ${v}.`,
+    },
+    {
+      label: 'What key facts or context does the AI need to know?',
+      placeholder: 'e.g., relevant background information',
+      clause: (v) => `Important context: ${v}.`,
+    },
+    {
+      label: 'Are there any constraints or restrictions to observe?',
+      placeholder: 'e.g., no jargon, under 200 words',
+      clause: (v) => `Please observe the following constraints: ${v}.`,
+    },
+    {
+      label: 'What have you already tried, if anything?',
+      placeholder: 'e.g., a previous draft, a prior approach',
+      clause: (v) => `Previously attempted: ${v}.`,
+    },
+    {
+      label: 'Is there a deadline or urgency level for this?',
+      placeholder: 'e.g., needed today, no rush',
+      clause: (v) => `Urgency: ${v}.`,
+    },
+    {
+      label: 'What would make the response unsatisfactory to you?',
+      placeholder: 'e.g., too generic, missing detail',
+      clause: (v) => `Please avoid the following, as it would be unsatisfactory: ${v}.`,
+    },
+  ];
+
+  function isBlankAnswer(value) {
+    if (!value) return true;
+    return /^(n\/a|na|unknown|none|skip|idk)$/i.test(value.trim());
+  }
+
+  function compilePrompt(goal, answers) {
+    const parts = [`Please help with the following task: ${goal}.`];
+    answers.forEach((value, idx) => {
+      if (isBlankAnswer(value)) return;
+      parts.push(PROMPT_BUILDER_QUESTIONS[idx].clause(value.trim()));
+    });
+    return parts.join(' ');
+  }
+
+  function appendPromptBuilderForm(goal) {
+    const container = el('chatMessages');
+    const bubble = document.createElement('div');
+    bubble.className = 'chat-msg bot pb-msg';
+
+    const heading = document.createElement('p');
+    heading.className = 'pb-heading';
+    heading.textContent = 'Prompt Builder Questionnaire';
+    bubble.appendChild(heading);
+
+    const intro = document.createElement('p');
+    intro.className = 'pb-intro';
+    intro.textContent = `Thank you. Based on "${goal}", please answer the following questions to help assemble a well-rounded prompt. An answer of "N/A" or "Unknown" is entirely acceptable, and short phrases are welcome.`;
+    bubble.appendChild(intro);
+
+    const form = document.createElement('form');
+    form.className = 'pb-form';
+    const inputs = [];
+
+    PROMPT_BUILDER_QUESTIONS.forEach((q, idx) => {
+      const row = document.createElement('div');
+      row.className = 'pb-row';
+
+      const label = document.createElement('label');
+      label.className = 'pb-label';
+      label.setAttribute('for', `pbInput${idx}`);
+      label.textContent = `${idx + 1}. ${q.label}`;
+
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.id = `pbInput${idx}`;
+      input.className = 'pb-input';
+      input.placeholder = q.placeholder;
+      input.autocomplete = 'off';
+
+      row.appendChild(label);
+      row.appendChild(input);
+      form.appendChild(row);
+      inputs.push(input);
+    });
+
+    inputs.forEach((input, idx) => {
+      input.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        if (idx < inputs.length - 1) {
+          inputs[idx + 1].focus();
+        } else if (form.requestSubmit) {
+          form.requestSubmit();
+        } else {
+          form.dispatchEvent(new Event('submit', { cancelable: true }));
+        }
+      });
+    });
+
+    const submitBtn = document.createElement('button');
+    submitBtn.type = 'submit';
+    submitBtn.className = 'btn btn-primary pb-submit';
+    submitBtn.textContent = 'Build My Prompt';
+    form.appendChild(submitBtn);
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const answers = inputs.map((input) => input.value);
+      inputs.forEach((input) => { input.disabled = true; });
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Prompt Built';
+      const compiled = compilePrompt(goal, answers);
+      setTimeout(() => appendCompiledPrompt(compiled), 200);
+    });
+
+    bubble.appendChild(form);
+    container.appendChild(bubble);
+    container.scrollTop = container.scrollHeight;
+  }
+
+  function appendCompiledPrompt(promptText) {
+    const container = el('chatMessages');
+    const bubble = document.createElement('div');
+    bubble.className = 'chat-msg bot';
+
+    const intro = document.createElement('p');
+    intro.className = 'pb-result-intro';
+    intro.textContent = 'Thank you. Here is a well-rounded prompt compiled from your answers:';
+    bubble.appendChild(intro);
+
+    const result = document.createElement('div');
+    result.className = 'pb-result';
+    result.textContent = promptText;
+    bubble.appendChild(result);
+
+    const copyBtn = document.createElement('button');
+    copyBtn.type = 'button';
+    copyBtn.className = 'btn btn-outline pb-copy';
+    copyBtn.textContent = 'Copy Prompt';
+    copyBtn.addEventListener('click', () => {
+      if (!navigator.clipboard) return;
+      navigator.clipboard.writeText(promptText).then(() => {
+        copyBtn.textContent = 'Copied';
+        setTimeout(() => { copyBtn.textContent = 'Copy Prompt'; }, 1500);
+      }).catch(() => {});
+    });
+    bubble.appendChild(copyBtn);
+
+    container.appendChild(bubble);
+    container.scrollTop = container.scrollHeight;
+  }
+
   const TOPICS = [
+    {
+      test: /prompt builder|build.*prompt|craft.*prompt|write.*prompt/i,
+      handle: () => {
+        promptBuilderStage = 'awaiting_goal';
+        return 'Certainly. Prompt Builder helps assemble a well-rounded AI prompt through a short questionnaire. First, please give me a brief description of what you are trying to do (for example, "write a marketing email" or "debug a Python script").';
+      },
+    },
     {
       test: /^(hi|hello|hey|yo)\b/i,
       handle: (i) => {
-        if (!i.hasData) return "Hi, I'm Tonii! I'm here to analyze your own AI usage and help you cut its footprint. Upload an export from the Dashboard first, then ask me things like \"how are my habits?\" or \"how can I reduce my footprint?\"";
-        return `Hi, I'm Tonii! I've looked at your last 30 days: ${Math.round(i.totals.prompts)} prompts, about ${fmt(i.totals.co2Kg, 'kg CO2eq')}${i.largestContributor ? `, mostly from ${ASSISTANT_LABELS[i.largestContributor]}` : ''}. Ask me "how can I reduce my footprint?" or "how are my habits?" and I'll dig into your specific numbers.`;
+        if (!i.hasData) return 'Good day. I am Tonii, your personal sustainability analyst. Please upload an export from the Dashboard, then ask me a question such as "How Are My Habits?" or "How Can I Reduce My Footprint?"';
+        return `Good day. I am Tonii. I have reviewed your last 30 days: ${Math.round(i.totals.prompts)} prompts, approximately ${fmt(i.totals.co2Kg, 'kg CO2eq')}${i.largestContributor ? `, primarily from ${ASSISTANT_LABELS[i.largestContributor]}` : ''}. Ask me "How Can I Reduce My Footprint?" or "How Are My Habits?" and I will examine your specific figures.`;
       },
     },
     {
       test: /\bco2\b|carbon|emission/i,
       handle: (i) => {
-        if (!i.hasData) return 'CO2 (carbon dioxide equivalent) estimates the greenhouse gas impact of generating a model\'s electricity. Upload your data and I\'ll show what that means for you specifically, plus how to bring it down.';
-        const parts = [`Your last 30 days produced about ${fmt(i.totals.co2Kg, 'kg CO2eq')} (range: ${fmt(i.totals.co2Min, 'kg')} – ${fmt(i.totals.co2Max, 'kg')}).`];
+        if (!i.hasData) return 'CO2 (carbon dioxide equivalent) estimates the greenhouse gas impact of generating a model\'s electricity. Please upload your data, and I will show what that means for you specifically, along with how to reduce it.';
+        const parts = [`Your last 30 days produced approximately ${fmt(i.totals.co2Kg, 'kg CO2eq')} (range: ${fmt(i.totals.co2Min, 'kg')} – ${fmt(i.totals.co2Max, 'kg')}).`];
         if (i.largestContributor) {
           const share = i.totals.co2Kg > 0 ? (i.largestCo2 / i.totals.co2Kg) * 100 : 0;
-          parts.push(`${ASSISTANT_LABELS[i.largestContributor]} drives about ${share.toFixed(0)}% of it - that's your single biggest lever for cutting this number.`);
+          parts.push(`${ASSISTANT_LABELS[i.largestContributor]} accounts for approximately ${share.toFixed(0)}% of this - your single largest lever for reducing this figure.`);
         }
-        parts.push('Ask me "how can I reduce this?" for specific next steps.');
+        parts.push('Ask me "How Can I Reduce This?" for specific next steps.');
         return parts.join(' ');
       },
     },
     {
       test: /\benergy\b|electric|kwh|power/i,
       handle: (i) => {
-        if (!i.hasData) return 'Electricity consumption covers the compute, cooling, and data-center overhead behind each reply. Upload your data and I\'ll break down your own usage and where to trim it.';
-        const parts = [`Your last 30 days used about ${fmt(i.totals.energyKwh, 'kWh')} (range: ${fmt(i.totals.energyMin, 'kWh')} – ${fmt(i.totals.energyMax, 'kWh')}), averaging ${Math.round(i.avgOutputTokens)} output tokens per reply.`];
+        if (!i.hasData) return 'Electricity consumption covers the compute, cooling, and data-center overhead behind each reply. Please upload your data, and I will provide a breakdown of your usage and where to reduce it.';
+        const parts = [`Your last 30 days used approximately ${fmt(i.totals.energyKwh, 'kWh')} (range: ${fmt(i.totals.energyMin, 'kWh')} – ${fmt(i.totals.energyMax, 'kWh')}), averaging ${Math.round(i.avgOutputTokens)} output tokens per reply.`];
         if (i.avgOutputTokens > FALLBACK_TYPICAL_OUTPUT_TOKENS * 1.3) {
-          parts.push('That reply length is well above typical - shorter, more targeted asks would meaningfully cut this.');
+          parts.push('This reply length is well above typical; shorter, more targeted requests would meaningfully reduce this figure.');
         }
         return parts.join(' ');
       },
@@ -205,34 +396,34 @@
     {
       test: /\bwater\b/i,
       handle: (i) => {
-        const base = 'Water consumption mostly comes from data-center cooling and the electricity generation behind your prompts.';
-        if (!i.hasData || i.totals.waterCount === 0) return `${base} No EcoLogits water figure is available for your uploads yet - it's only reported for responses matched to a registered model, so I can't tell you your personal number right now.`;
-        return `${base} Your last 30 days: about ${fmt(i.totals.waterL, 'L')} (range: ${fmt(i.totals.waterMin, 'L')} – ${fmt(i.totals.waterMax, 'L')}). Check the Comparison tab on the Dashboard's Water panel to see that in rain-drop terms.`;
+        const base = 'Water consumption primarily comes from data-center cooling and the electricity generation behind your prompts.';
+        if (!i.hasData || i.totals.waterCount === 0) return `${base} No EcoLogits water figure is available for your uploads at this time; it is only reported for responses matched to a registered model, so I am unable to provide your personal figure right now.`;
+        return `${base} Your last 30 days: approximately ${fmt(i.totals.waterL, 'L')} (range: ${fmt(i.totals.waterMin, 'L')} – ${fmt(i.totals.waterMax, 'L')}). Please see the Comparison tab on the Dashboard's Water panel for this figure expressed in rain-drop terms.`;
       },
     },
     {
       test: /mineral|metal|antimony|sb-eq/i,
       handle: (i) => {
-        const base = 'The minerals figure reflects the finite metals consumed making the chips that ran your prompts.';
-        if (!i.hasData || i.totals.mineralsCount === 0) return `${base} No EcoLogits minerals figure is available for your uploads yet - it's only reported for responses matched to a registered model.`;
-        return `${base} Your last 30 days: about ${fmt(i.totals.mineralsKg, 'kg Sb-eq')} (range: ${fmt(i.totals.mineralsMin, 'kg')} – ${fmt(i.totals.mineralsMax, 'kg')}). This one mostly tracks how many prompts you send, not how long your replies are - fewer, more deliberate prompts is the main lever here.`;
+        const base = 'The minerals figure reflects the finite metals consumed in manufacturing the chips that processed your prompts.';
+        if (!i.hasData || i.totals.mineralsCount === 0) return `${base} No EcoLogits minerals figure is available for your uploads at this time; it is only reported for responses matched to a registered model.`;
+        return `${base} Your last 30 days: approximately ${fmt(i.totals.mineralsKg, 'kg Sb-eq')} (range: ${fmt(i.totals.mineralsMin, 'kg')} – ${fmt(i.totals.mineralsMax, 'kg')}). This figure primarily tracks how many prompts you send, not how long your replies are; fewer, more deliberate prompts is the primary lever here.`;
       },
     },
     {
       test: /why.*(energy|power|consum)|consum.*(energy|power)/i,
       handle: (i) => {
-        const base = "AI models run on GPUs (or TPUs) - specialized chips doing billions of matrix calculations per reply. Every calculation draws electricity, and the data center around the chips needs its own power for cooling and networking on top of that.";
+        const base = 'AI models run on GPUs (or TPUs), specialized chips performing billions of matrix calculations per reply. Each calculation draws electricity, and the data center surrounding the chips requires its own power for cooling and networking as well.';
         if (!i.hasData) return base;
-        return `${base} For you specifically: your ${Math.round(i.totals.prompts)} prompts this period averaged ${Math.round(i.avgOutputTokens)} output tokens each - longer replies mean more compute per prompt, so trimming reply length is the fastest way to lower your own draw.`;
+        return `${base} For you specifically: your ${Math.round(i.totals.prompts)} prompts this period averaged ${Math.round(i.avgOutputTokens)} output tokens each. Longer replies require more compute per prompt, so reducing reply length is the fastest way to lower your own consumption.`;
       },
     },
     {
       test: /uncertain|estimate|accura|confiden|precise|reliab/i,
       handle: (i) => {
-        let msg = "These numbers are estimates, not measurements. When possible we call the live EcoLogits API for a real model-based estimate; when that's unavailable we fall back to a simpler calibrated formula that can't report water (except Gemini) or minerals at all.";
+        let msg = 'These figures are estimates, not measurements. When possible, we call the live EcoLogits API for a model-based estimate; when that is unavailable, we rely on a simpler calibrated formula that cannot report water (except for Gemini) or minerals at all.';
         if (i.hasData && i.fallbackRatio !== null) {
           msg += ` For your data specifically: ${(i.fallbackRatio * 100).toFixed(0)}% of replies this period used the fallback formula rather than live EcoLogits data`;
-          msg += i.fallbackRatio > 0.3 ? ' - treat your totals as directional, not precise.' : '.';
+          msg += i.fallbackRatio > 0.3 ? '; please treat your totals as directional rather than precise.' : '.';
         }
         return msg;
       },
@@ -240,11 +431,11 @@
     {
       test: /habit|inefficient|pattern|my usage|how am i doing/i,
       handle: (i) => {
-        if (!i.hasData) return "I don't see any usage data yet for the last 30 days - upload an export from the Dashboard first and I'll break down your habits and how to improve them.";
+        if (!i.hasData) return 'No usage data is available for the last 30 days at this time. Please upload an export from the Dashboard, and I will provide a breakdown of your habits and how to improve them.';
         const parts = [`Over the last 30 days you sent ${Math.round(i.totals.prompts)} prompts, averaging ${Math.round(i.avgInputTokens)} tokens in and ${Math.round(i.avgOutputTokens)} tokens out per reply.`];
         if (i.largestContributor) parts.push(`${ASSISTANT_LABELS[i.largestContributor]} is your largest contributor to estimated CO2.`);
         if (i.mostEfficient) parts.push(`${ASSISTANT_LABELS[i.mostEfficient]} is your most efficient assistant per prompt, by estimated CO2.`);
-        parts.push('Ask me "how can I reduce my footprint?" and I\'ll turn this into concrete steps for you.');
+        parts.push('Ask me "How Can I Reduce My Footprint?" and I will provide concrete steps for you.');
         return parts.join(' ');
       },
     },
@@ -252,35 +443,35 @@
       test: /recommend|improve|tip|reduce|lower|better|advice|boost|sustainab/i,
       handle: (i) => {
         if (!i.hasData) return buildRecommendations(i)[0];
-        const intro = `Based on your last 30 days (${Math.round(i.totals.prompts)} prompts, ${fmt(i.totals.co2Kg, 'kg CO2eq')}), here's how to boost your sustainability:`;
+        const intro = `Based on your last 30 days (${Math.round(i.totals.prompts)} prompts, ${fmt(i.totals.co2Kg, 'kg CO2eq')}), here is how to boost your sustainability:`;
         return `${intro}\n\n${buildRecommendations(i).map((r, idx) => `${idx + 1}. ${r}`).join('\n\n')}`;
       },
     },
     {
       test: /receipt|pdf|report|download/i,
-      handle: () => "Click \"Generate Receipt (PDF)\" below and I'll analyze your footprint, habits, and the specific steps you can take to improve your sustainability.",
+      handle: () => 'Please select "Generate Receipt (PDF)" below, and I will analyze your footprint, habits, and the specific steps you may take to improve your sustainability.',
     },
   ];
 
-  const FALLBACK_RESPONSE = "I'm focused on analyzing your own AI usage - ask me things like \"how are my habits?\", \"what's my biggest impact area?\", or \"how can I boost my sustainability?\" and I'll dig into your actual numbers. I can also explain what CO2/energy/water/minerals mean or how reliable these estimates are, if that helps interpret your data.";
+  const FALLBACK_RESPONSE = 'I am focused on analyzing your own AI usage. Ask me a question such as "How Are My Habits?", "What Is My Biggest Impact Area?", or "How Can I Boost My Sustainability?" and I will examine your actual figures. I can also explain what CO2, energy, water, and minerals mean, how reliable these estimates are, or help you assemble a well-rounded prompt via "Prompt Builder".';
 
   function respond(userText) {
     const insights = computeInsights();
     const topic = TOPICS.find((t) => t.test.test(userText));
     const reply = topic ? topic.handle(insights) : FALLBACK_RESPONSE;
     if (insights.loadFailed && /habit|my usage|how am i doing|receipt/i.test(userText)) {
-      return `${reply}\n\n(I couldn't reach your saved data just now - try again in a moment.)`;
+      return `${reply}\n\n(I was unable to reach your saved data just now; please try again in a moment.)`;
     }
     return reply;
   }
 
   function wireChat() {
     const suggestions = [
-      'How are my habits?',
-      'How can I boost my sustainability?',
-      "What's my biggest impact area?",
-      'How accurate are these numbers?',
-      'What does CO2 mean?',
+      'How Are My Habits?',
+      'How Can I Boost My Sustainability?',
+      'What Is My Biggest Impact Area?',
+      'How Accurate Are These Numbers?',
+      'Prompt Builder',
     ];
     const suggestionsEl = el('chatSuggestions');
     suggestions.forEach((text) => {
@@ -293,8 +484,8 @@
 
     const greetingInsights = computeInsights();
     const greetingText = greetingInsights.hasData
-      ? `Hi, I'm Tonii! I've looked at your last 30 days: ${Math.round(greetingInsights.totals.prompts)} prompts, about ${fmt(greetingInsights.totals.co2Kg, 'kg CO2eq')}${greetingInsights.largestContributor ? `, mostly from ${ASSISTANT_LABELS[greetingInsights.largestContributor]}` : ''}. Ask me "how can I boost my sustainability?" and I'll dig into your specific numbers.`
-      : "Hi, I'm Tonii! I'm here to analyze your own AI usage and help you boost its sustainability. Upload an export from the Dashboard first, then ask me things like \"how are my habits?\" or \"how can I reduce my footprint?\"";
+      ? `Good day. I am Tonii. I have reviewed your last 30 days: ${Math.round(greetingInsights.totals.prompts)} prompts, approximately ${fmt(greetingInsights.totals.co2Kg, 'kg CO2eq')}${greetingInsights.largestContributor ? `, primarily from ${ASSISTANT_LABELS[greetingInsights.largestContributor]}` : ''}. Ask me "How Can I Boost My Sustainability?" and I will examine your specific figures.`
+      : 'Good day. I am Tonii, your personal sustainability analyst. Please upload an export from the Dashboard, then ask me a question such as "How Are My Habits?" or "How Can I Reduce My Footprint?"';
     appendMessage(greetingText, 'bot');
 
     const form = el('chatForm');
@@ -310,6 +501,14 @@
 
   function sendMessage(text) {
     appendMessage(text, 'user');
+
+    if (promptBuilderStage === 'awaiting_goal') {
+      const goal = text.trim();
+      promptBuilderStage = null;
+      setTimeout(() => appendPromptBuilderForm(goal), 200);
+      return;
+    }
+
     const reply = respond(text);
     setTimeout(() => appendMessage(reply, 'bot'), 200);
   }
