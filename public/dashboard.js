@@ -150,6 +150,8 @@
         : null,
     });
 
+    renderEquivalents(stats);
+
     let ecologitsCount = 0;
     let fallbackCount = 0;
     ORDER.forEach((key) => {
@@ -365,6 +367,8 @@
     });
   }
 
+  const TAB_ID_SUFFIX = { numbers: 'Numbers', chart: 'Chart', comparison: 'Comparison' };
+
   function wireMetricTabToggles() {
     document.querySelectorAll('.tab-toggle[data-tabs]').forEach((toggle) => {
       const prefix = toggle.dataset.tabs;
@@ -373,12 +377,90 @@
         btn.addEventListener('click', () => {
           buttons.forEach((b) => b.classList.remove('active'));
           btn.classList.add('active');
-          const showChart = btn.dataset.tab === 'chart';
-          el(`${prefix}Numbers`).classList.toggle('hidden', showChart);
-          el(`${prefix}Chart`).classList.toggle('hidden', !showChart);
+          const activeTab = btn.dataset.tab;
+          Object.keys(TAB_ID_SUFFIX).forEach((tab) => {
+            const panel = el(`${prefix}${TAB_ID_SUFFIX[tab]}`);
+            if (panel) panel.classList.toggle('hidden', tab !== activeTab);
+          });
         });
       });
     });
+  }
+
+  // --- Comparison equivalents -----------------------------------------------
+  //
+  // Conversion factors taken directly from EcoLogits' own official calculator
+  // (github.com/mlco2/ecologits-calculator, src/config/constants.py) so the
+  // comparisons trace back to the same published sources EcoLogits itself
+  // uses, not numbers we made up.
+  const EV_KWH_PER_KM = 0.17; // electric vehicle energy use
+  const THERMIC_VEHICLE_G_PER_KM = 142; // gas vehicle GHG emissions
+  const WATER_DROP_ML = 0.05; // volume of one rain drop
+  const IPHONE_G_SBEQ = 2; // abiotic depletion (minerals) to build one iPhone
+
+  function renderEquivalentCard(prefix, { emoji, value, unit, name, text }) {
+    const container = el(`${prefix}Comparison`);
+    if (!container) return;
+    container.innerHTML = `
+      <div class="equiv-card">
+        <div class="equiv-emoji">${emoji}</div>
+        <div class="equiv-value">${value}<span class="equiv-unit">${unit}</span></div>
+        <div class="equiv-name">${name}</div>
+        <div class="equiv-text muted">${text}</div>
+      </div>
+    `;
+  }
+
+  function renderEquivalentEmpty(prefix, message) {
+    const container = el(`${prefix}Comparison`);
+    if (!container) return;
+    container.innerHTML = `<p class="muted equiv-empty">${message}</p>`;
+  }
+
+  function renderEquivalents(stats) {
+    const co2Km = (stats.totals.co2Kg * 1000) / THERMIC_VEHICLE_G_PER_KM;
+    renderEquivalentCard('co2', {
+      emoji: '🏎️',
+      value: formatAdaptive(co2Km, ''),
+      unit: 'km',
+      name: 'Driving a gas car',
+      text: `Distance an average gas-powered vehicle would need to drive to emit the same CO2 (${THERMIC_VEHICLE_G_PER_KM} gCO2eq/km, per EcoLogits' calculator).`,
+    });
+
+    const evKm = stats.totals.energyKwh / EV_KWH_PER_KM;
+    renderEquivalentCard('energy', {
+      emoji: '🔋',
+      value: formatAdaptive(evKm, ''),
+      unit: 'km',
+      name: 'Driving an electric vehicle',
+      text: `Distance an electric vehicle could travel on the same electricity (${EV_KWH_PER_KM} kWh/km, per EcoLogits' calculator).`,
+    });
+
+    if (stats.totals.waterCount > 0) {
+      const drops = (stats.totals.waterL * 1000) / WATER_DROP_ML;
+      renderEquivalentCard('water', {
+        emoji: '💦',
+        value: formatAdaptive(drops, ''),
+        unit: 'rain drops',
+        name: 'Rain drops',
+        text: `Number of average rain drops (${WATER_DROP_ML} mL each, per EcoLogits' calculator) holding the same volume of water.`,
+      });
+    } else {
+      renderEquivalentEmpty('water', 'No EcoLogits water data available for this period, so no comparison can be computed.');
+    }
+
+    if (stats.totals.mineralsCount > 0) {
+      const iphoneEq = (stats.totals.mineralsKg * 1000) / IPHONE_G_SBEQ;
+      renderEquivalentCard('minerals', {
+        emoji: '📱',
+        value: formatAdaptive(iphoneEq, ''),
+        unit: 'iPhones',
+        name: 'iPhone equivalents',
+        text: `Share of the metals and minerals needed to build one iPhone (${IPHONE_G_SBEQ} gSb-eq each, per EcoLogits' calculator).`,
+      });
+    } else {
+      renderEquivalentEmpty('minerals', 'No EcoLogits minerals data available for this period, so no comparison can be computed.');
+    }
   }
 
   // --- Upload ---------------------------------------------------------------

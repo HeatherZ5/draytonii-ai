@@ -98,6 +98,7 @@
         <div class="tab-toggle" data-tabs="co2">
           <button data-tab="numbers" class="active">Numbers</button>
           <button data-tab="chart">Chart</button>
+          <button data-tab="comparison">Comparison</button>
         </div>
       </div>
 
@@ -118,6 +119,8 @@
         <ul class="legend" id="co2Legend"></ul>
       </div>
 
+      <div class="panel-body hidden" id="co2Comparison"></div>
+
       <p class="panel-footnote muted">Estimate only - based on EcoLogits' published model, not a direct measurement of Anthropic/OpenAI/Google infrastructure.</p>
     </section>
 
@@ -127,6 +130,7 @@
         <div class="tab-toggle" data-tabs="energy">
           <button data-tab="numbers" class="active">Numbers</button>
           <button data-tab="chart">Chart</button>
+          <button data-tab="comparison">Comparison</button>
         </div>
       </div>
 
@@ -147,6 +151,8 @@
         <ul class="legend" id="energyLegend"></ul>
       </div>
 
+      <div class="panel-body hidden" id="energyComparison"></div>
+
       <p class="panel-footnote muted">Estimate only - based on EcoLogits' published model, not a direct measurement of Anthropic/OpenAI/Google infrastructure.</p>
     </section>
 
@@ -156,6 +162,7 @@
         <div class="tab-toggle" data-tabs="water">
           <button data-tab="numbers" class="active">Numbers</button>
           <button data-tab="chart">Chart</button>
+          <button data-tab="comparison">Comparison</button>
         </div>
       </div>
 
@@ -176,6 +183,8 @@
         <ul class="legend" id="waterLegend"></ul>
       </div>
 
+      <div class="panel-body hidden" id="waterComparison"></div>
+
       <p class="panel-footnote muted" id="waterFootnote">Estimate only, from EcoLogits' water consumption footprint (WCF) figures. Only responses EcoLogits could match to a registered model contribute here - others show as unavailable rather than a guessed number.</p>
     </section>
 
@@ -185,6 +194,7 @@
         <div class="tab-toggle" data-tabs="minerals">
           <button data-tab="numbers" class="active">Numbers</button>
           <button data-tab="chart">Chart</button>
+          <button data-tab="comparison">Comparison</button>
         </div>
       </div>
 
@@ -204,6 +214,8 @@
         </div>
         <ul class="legend" id="mineralsLegend"></ul>
       </div>
+
+      <div class="panel-body hidden" id="mineralsComparison"></div>
 
       <p class="panel-footnote muted" id="mineralsFootnote">Estimate only, from EcoLogits' abiotic depletion potential (elements) figures, expressed in kg antimony-equivalent. Only responses EcoLogits could match to a registered model contribute here - others show as unavailable rather than a guessed number.</p>
     </section>

@@ -496,6 +496,52 @@ main {
   line-height: 1.5;
 }
 
+.equiv-card {
+  text-align: center;
+  padding: 22px 20px 6px;
+}
+
+.equiv-emoji {
+  font-size: 2rem;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.equiv-value {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--color-primary-dark);
+  letter-spacing: -0.02em;
+}
+
+.equiv-unit {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-left: 6px;
+  color: var(--color-text-muted);
+}
+
+.equiv-name {
+  margin-top: 6px;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.equiv-text {
+  margin-top: 6px;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  max-width: 380px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.equiv-empty {
+  text-align: center;
+  padding: 24px 12px;
+  font-size: 0.88rem;
+}
+
 .panel-footnote {
   font-size: 0.7rem;
   margin: 16px 0 0;
