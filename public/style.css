@@ -287,6 +287,14 @@ img.photo-placeholder-box {
   border: 1px solid var(--color-border);
 }
 
+/* Use on images that should show in full, uncropped (e.g. diagrams/graphics
+   rather than photos), instead of the default 16:9 cover crop. */
+img.photo-placeholder-box.uncropped {
+  aspect-ratio: auto;
+  object-fit: contain;
+  background: var(--color-surface);
+}
+
 .photo-placeholder figcaption {
   margin-top: 8px;
   font-size: 0.78rem;
